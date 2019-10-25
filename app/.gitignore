@@ -1,0 +1,6 @@
+/dist/
+/tests/test-site-tests/
+/tmp/
+testem.log
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,28 @@
+{
+  "name": "afterburner-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "afterburner": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afterburner-js/afterburner-js.git"
+  },
+  "author": "Chris de Almeida",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/afterburner-js/afterburner-js/issues"
+  },
+  "homepage": "https://github.com/afterburner-js/afterburner-js#readme",
+  "devDependencies": {
+    "chalk": "^2.4.2",
+    "eslint": "^6.4.0",
+    "express": "^4.17.1",
+    "fs-extra": "^8.1.0",
+    "jsdoc": "^3.6.3"
+  },
+  "dependencies": {
+  }
+}

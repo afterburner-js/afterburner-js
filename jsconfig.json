@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@afterburner/assertions": ["./src/helpers/assertions"]
+      ,"@afterburner/test-helpers": ["./src/helpers/test-helpers"]
+      ,"@afterburner/test": ["./src/helpers/test-init"]
+    }
+  }
+}
