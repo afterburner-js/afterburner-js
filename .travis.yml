@@ -1,0 +1,11 @@
+addons:
+  chrome: stable
+  firefox: latest
+
+language: node_js
+
+node_js:
+  - lts/*
+
+script:
+  - afterburner smoke-test
