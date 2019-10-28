@@ -12,3 +12,4 @@ install:
 
 script:
   - afterburner smoke-test
+  - afterburner dev-test ci=true

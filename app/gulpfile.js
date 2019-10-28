@@ -96,7 +96,7 @@ gulp.task('js', gulp.series(() => {
   return done();
 
 }, () => {
-  // todo - travis tests should run smoke test and dev test with ci=true
+
   const files = globArray.sync(['tests/**/*.js']);
 
   return browserify({ entries: files, debug: true })
