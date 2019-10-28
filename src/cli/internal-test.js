@@ -4,6 +4,7 @@ const os = require('os');
 const { test, testTypeEnum } = require('./test');
 const { pCreateApp } = require('./new-app');
 const config = require('./config');
+const { spawn } = require('child_process');
 
 const { log } = console;
 
@@ -35,25 +36,47 @@ function startTestSiteServer() {
 }
 
 async function devTest() {
-  // todo: install node_modules if not installed
+
+  const appPath = `${config.rootDir}/app`;
+
+  let exitCode = await lint();
+
+  if (exitCode !== 0) {
+    return exitCode;
+  }
+
+  if (!fs.existsSync(`${appPath}/node_modules`)) {
+    exitCode = await installNodeModules(appPath);
+  }
+
+  if (exitCode !== 0) {
+    return exitCode;
+  }
 
   const { server, host } = await startTestSiteServer();
 
-  config.host = host;
+  config.host = host; // eslint-disable-line require-atomic-updates
 
-  const exitCode = await test({ cwd: `${config.rootDir}/app`, testType: testTypeEnum.DEV_TEST });
+  exitCode = await test({ cwd: appPath, testType: testTypeEnum.DEV_TEST });
   server.close();
+
   return exitCode;
 
 }
 
 async function smokeTest() {
 
+  let exitCode = await lint();
+
+  if (exitCode !== 0) {
+    return exitCode;
+  }
+
   const appPath = `${os.tmpdir()}/afterburner`;
 
   fs.removeSync(appPath);
 
-  let exitCode = await pCreateApp(appPath);
+  exitCode = await pCreateApp(appPath);
 
   if (exitCode !== 0) {
     return exitCode;
@@ -71,6 +94,34 @@ async function smokeTest() {
   exitCode = await test({ cwd: appPath, testType: testTypeEnum.SMOKE_TEST });
   server.close();
   return exitCode;
+
+}
+
+function installNodeModules(appPath) {
+
+  const npmInstall = spawn('npm i', { cwd: appPath, shell: true, stdio: 'inherit' });
+
+  return new Promise(resolve => {
+
+    npmInstall.on('exit', exitCode => {
+      resolve(exitCode);
+    });
+
+  });
+
+}
+
+function lint() {
+
+  const runLinter = spawn('./node_modules/.bin/eslint .', { cwd: config.rootDir, shell: true, stdio: 'inherit' });
+
+  return new Promise(resolve => {
+
+    runLinter.on('exit', exitCode => {
+      resolve(exitCode);
+    });
+
+  });
 
 }
 

@@ -189,7 +189,7 @@ function eavesdrop() {
   activeAjaxRequests = 0;
   lastAJAXRequestCompleted = null;
 
-  log(`${(new Date()).toISOString()} -- listening for AJAX events on: ${currentPage()}`, { color: 'grey', emoji: '👂', fontStyle: 'italic' });
+  log(`${new Date().toISOString()} -- listening for AJAX events on: ${currentPage()}`, { color: 'grey', emoji: '👂', fontStyle: 'italic' });
 
   const { open } = pFrameWindow.XMLHttpRequest.prototype;
 
@@ -202,7 +202,7 @@ function eavesdrop() {
 
       activeAjaxRequests += 1;
 
-      log(`${(new Date()).toISOString()} -- ajaxSend: ${url}`, { color: 'grey', emoji: '➡️', fontStyle: 'italic' });
+      log(`${new Date().toISOString()} -- ajaxSend: ${url}`, { color: 'grey', emoji: '➡️', fontStyle: 'italic' });
 
       this.addEventListener('loadend', function() {
         lastAJAXRequestCompleted = new Date();
@@ -322,7 +322,7 @@ function bindLoad(resolve, reject, { $clickedElement, waitForAjaxRequests = fals
       if ($clickedElement) { elementText = $clickedElement[0].outerHTML; }
 
       logLoadDuration(start, end, elementText, isPerformanceTest);
-      log(`${(new Date()).toISOString()} -- page loaded: ${currentPage()} -- waited for AJAX requests: ${waitForAjaxRequests}`, { color: 'grey', emoji: '📄', fontStyle: 'italic' });
+      log(`${new Date().toISOString()} -- page loaded: ${currentPage()} -- waited for AJAX requests: ${waitForAjaxRequests}`, { color: 'grey', emoji: '📄', fontStyle: 'italic' });
 
     }
 
@@ -558,7 +558,7 @@ function visit(url, { waitForAjaxRequests, timeout, isPerformanceTest, logErrors
     setPromiseTimeout(reject, timeout);
     bindLoad(resolve, reject, { waitForAjaxRequests, timeout, isPerformanceTest, logErrors, waitForElements });
 
-    log(`${(new Date()).toISOString()} -- navigating to: ${url}`, { color: 'grey', emoji: '🔗', fontStyle: 'italic' });
+    log(`${new Date().toISOString()} -- navigating to: ${url}`, { color: 'grey', emoji: '🔗', fontStyle: 'italic' });
 
     framezilla.src = url;
 
@@ -977,7 +977,7 @@ async function retry(timeout, pauseRate, logMessage, retryFunction, suppressLog)
   while (new Date() - start < timeout * 60000 && await retryFunction()) { // eslint-disable-line no-await-in-loop
 
     if (!suppressLog) {
-      log(`${(new Date()).toISOString()} -- pausing for ${pauseRate / 1000} second(s) -- ${logMessage}`, { color: 'grey', emoji: '⏸️', fontStyle: 'italic' });
+      log(`${new Date().toISOString()} -- pausing for ${pauseRate / 1000} second(s) -- ${logMessage}`, { color: 'grey', emoji: '⏸️', fontStyle: 'italic' });
     }
 
     await pause(pauseRate); // eslint-disable-line no-await-in-loop

@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 /**
  * Custom QUnit assertions.  See {@link module:helpers/assertions~DomAssertions DomAssertions} for specific assertions for DOM verification.
  * @module helpers/assertions
