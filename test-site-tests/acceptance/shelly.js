@@ -12,7 +12,7 @@ afterburner.module('Acceptance | Shelly', () => {
 
     const { exitCode, stderr } = await executeCommand('thisCommandDoesNotExist');
     assert.equal(exitCode, 127, 'exit code is correct for bad command');
-    assert.ok(stderr.includes('command not found'), 'stderr message is correct for bad command');
+    assert.ok(stderr.includes('not found'), 'stderr message is correct for bad command');
 
   });
 
