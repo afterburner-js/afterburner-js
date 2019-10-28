@@ -113,11 +113,11 @@ function installNodeModules(appPath) {
 
 function lint() {
 
-  const npmInstall = spawn('./node_modules/.bin/eslint .', { cwd: config.rootDir, shell: true, stdio: 'inherit' });
+  const runLinter = spawn('./node_modules/.bin/eslint .', { cwd: config.rootDir, shell: true, stdio: 'inherit' });
 
   return new Promise(resolve => {
 
-    npmInstall.on('exit', exitCode => {
+    runLinter.on('exit', exitCode => {
       resolve(exitCode);
     });
 

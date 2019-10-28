@@ -82,7 +82,10 @@ function getCICommand(filter, host, launch, testType) {
     params.set('filter', filter);
   }
 
-  if (testType === testTypeEnum.SMOKE_TEST) {
+  if (testType === testTypeEnum.DEV_TEST) {
+    cmd += ' devTest=true';
+  }
+  else if (testType === testTypeEnum.SMOKE_TEST) {
     cmd += ` afterburnerRootDir=${config.rootDir}`;
   }
 
