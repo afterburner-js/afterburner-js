@@ -2,9 +2,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@afterburner/assertions": ["./src/helpers/assertions"]
-      ,"@afterburner/test-helpers": ["./src/helpers/test-helpers"]
-      ,"@afterburner/test": ["./src/helpers/test-init"]
+      "@afterburner/assertions": ["./src/helpers/assertions"],
+      "@afterburner/config": ["./app/afterburner-config"],
+      "@afterburner/stacky-error": ["./src/classes/stacky-error"],
+      "@afterburner/test-helpers": ["./src/helpers/test-helpers"],
+      "@afterburner/test": ["./src/helpers/test-init"]
     }
   }
 }

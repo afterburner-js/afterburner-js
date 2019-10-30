@@ -8,10 +8,10 @@
 
 const QUnit = require('qunit');
 const {
-  findAll,
   currentPage,
   currentPageIs,
   elementIsVisible,
+  resolveSelector,
   trimAndRemoveLineBreaks
 } = require('@afterburner/test-helpers');
 
@@ -276,27 +276,26 @@ module.exports = function() {
    * Gets element(s) from the DOM.  First part of a curried function call to a DOM assertion.
    * This cannot be called on its own and requires a chained DomAssertion function call.
    * See {@link module:helpers/assertions~DomAssertions DomAssertions} for usage information.
-   * @param {selector|HTMLElement|NodeList} selector
+   * @param {selector|HTMLElement|Array} selector
    * - a string containing a selector expression
    * <br> - an HTMLElement
-   * <br> - a NodeList of HTMLElements
+   * <br> - an Array of HTMLElements
    * @returns {DomAssertions} {@link module:helpers/assertions~DomAssertions DomAssertions} instance with curried functions
    * @alias module:helpers/assertions.dom
    */
   QUnit.assert.dom = function(selector) {
 
-    let e, mutatedSelector;
+    const e = resolveSelector(selector);
+
+    let mutatedSelector;
 
     if (selector instanceof HTMLElement) {
-      e = selector;
       mutatedSelector = e.nodeName;
     }
     else if (typeof selector === 'string') {
-      e = findAll(selector);
       mutatedSelector = selector;
     }
     else {
-      e = selector;
       mutatedSelector = selector.toString();
     }
 
