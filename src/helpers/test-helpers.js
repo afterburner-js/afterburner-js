@@ -2,7 +2,8 @@
 
 /** @module helpers/test-helpers */
 
-// const StackyError = require('../../app/classes/stacky-error');
+const StackyError = require('@afterburner/stacky-error');
+const config = require('@afterburner/config');
 
 const iframeContainer = document.getElementById('iframeContainer');
 
@@ -17,7 +18,7 @@ function find(selector) {
 }
 
 function findAll(selector) {
-  return frameWindow().document.querySelectorAll(selector);
+  return Array.from(frameWindow().document.querySelectorAll(selector));
 }
 
 /**
@@ -103,7 +104,7 @@ function hideFramezilla() {
  * @private
  * @instance
 */
-window.addEventListener('scroll', (/* e */) => {
+window.addEventListener('scroll', () => {
 
   clearTimeout(scrollTimer);
 
@@ -132,7 +133,7 @@ window.addEventListener('scroll', (/* e */) => {
  * @private
  * @instance
 */
-window.addEventListener('resize', (/* e */) => {
+window.addEventListener('resize', () => {
 
   clearTimeout(resizeTimer);
 
@@ -254,7 +255,7 @@ async function waitForAjaxRequestsToFinish() {
  * @private
  * @instance
 */
-function detectProxyErrors(/* reject, outerStack */) {
+function detectProxyErrors(reject, outerStack) {
 
   const { contentType } = frameWindow().document;
 
@@ -266,8 +267,7 @@ function detectProxyErrors(/* reject, outerStack */) {
     docTxt = frameWindow().document.documentElement.textContent;
 
     if (docTxt.startsWith('Error occured while trying to proxy')) {
-      // todo: restore:
-      // reject(new StackyError(outerStack, `could not load page: ${docTxt}`));
+      reject(new StackyError(outerStack, `could not load page: ${docTxt}`));
       pageLoaded = false;
     }
 
@@ -300,8 +300,7 @@ function bindLoad(resolve, reject, { $clickedElement, waitForAjaxRequests = fals
 
     if (pageLoadSuccess) {
 
-      // todo: restore:
-      // await settled();
+      await settled();
 
       if (waitForElements) {
         await waitForElementsToLoad(waitForElements); // wait for specific elements to appear in the DOM before considering the page loaded
@@ -340,16 +339,7 @@ function bindLoad(resolve, reject, { $clickedElement, waitForAjaxRequests = fals
 */
 async function waitForElementsToLoad(elements) {
 
-  // TODO: change this to accept selectors/resolveselector
-
-  let waitForElements;
-
-  if (Array.isArray(elements)) {
-    waitForElements = elements;
-  }
-  else {
-    waitForElements = [elements];
-  }
+  const waitForElements = resolveSelector(elements);
 
   for (const e of waitForElements) {
 
@@ -361,12 +351,14 @@ async function waitForElementsToLoad(elements) {
 
 }
 
+// todo: add note in jsdoc that click(), elementIsVisible, etc. will get the first element that matches if an array or selector is passed in
+
 /**
  * Click on an element.  If the element is an &lt;a&gt; or [type="submit"], then this will resolve after page load completes.
- * @param {selector|HTMLElement|NodeList} selector
+ * @param {selector|HTMLElement|Array} selector
  * - a string containing a selector expression
  * <br> - an HTMLElement
- * <br> - a NodeList of HTMLElements
+ * <br> - an Array of HTMLElements
  * @param {object} [options]
  * @param {boolean} [options.expectPageLoad=null] if true, forces a page load to occur before resolving.  if false, resolves immediately after click.  if not specified, the default behavior is such that a page load will be expected if the clicked element is an anchor tag or an element of type="submit"
  * @param {boolean} [options.waitForAjaxRequests=false] wait for pending AJAX requests to complete before resolving
@@ -413,8 +405,7 @@ async function resolveSynchronousClick(e, resolve, waitForElements) {
 
   simulateMouseClick(e);
 
-  // todo: restore:
-  // await settled();
+  await settled();
 
   if (waitForElements) {
     await waitForElementsToLoad(waitForElements);
@@ -499,17 +490,16 @@ function currentPageIsNot(expected) {
 
 /**
  * Set the value of a form element
- * @param {selector|HTMLElement|NodeList} selector
+ * @param {selector|HTMLElement|Array} selector
  * - a string containing a selector expression
  * <br> - an HTMLElement
- * <br> - a NodeList of HTMLElements
+ * <br> - an Array of HTMLElements
  * @param {string} value
  * @instance
  * @example
  * fillIn('.someSelector', 'someValue');
 */
 function fillIn(selector, value) {
-  // fix: make other helpers use resolveSelector
   resolveSelector(selector).forEach(e => {
     e.value = value;
   });
@@ -525,7 +515,7 @@ function resolveSelector(selector) {
     return [selector];
   }
 
-  if (selector instanceof NodeList) {
+  if (Array.isArray(selector)) {
     return selector;
   }
 
@@ -541,10 +531,10 @@ function resolveSelector(selector) {
  * @param {number} [options.timeout=1] fractional minutes - custom timeout for rejecting
  * @param {boolean} [options.isPerformanceTest=false] context is a performance test - additional logging and waiting for AJAX requests before resolving
  * @param {boolean} [options.logErrors=true] log errors
- * @param {selector|HTMLElement|NodeList} [options.waitForElements] elements to wait for being available in the DOM before resolving<br>
+ * @param {selector|HTMLElement|Array} [options.waitForElements] elements to wait for being available in the DOM before resolving<br>
  * - a string containing a selector expression
  * <br> - an HTMLElement
- * <br> - a NodeList of HTMLElements
+ * <br> - an Array of HTMLElements
  * @returns {promise}
  * @instance
  * @example
@@ -583,6 +573,46 @@ function waitForPageRedirect({ waitForAjaxRequests, timeout } = {}) {
     setPromiseTimeout(reject, timeout);
     bindLoad(resolve, reject, { waitForAjaxRequests, timeout });
   });
+
+}
+
+async function settled() {
+
+  if (config.environments.includes('ember')) {
+
+    const w = frameWindow();
+
+    if (w.Ember) {
+      // we're on an Ember page
+
+      let router;
+
+      while (
+        // check run loop is clear
+        w.Ember.run.currentRunLoop ||
+        // check run loop schedule is clear
+        w.Ember.run.hasScheduledTimers() ||
+        // check router is available
+        !router ||
+        // check route transitions
+        router._routerMicrolib.activeTransition // eslint-disable-line no-underscore-dangle
+      ) {
+
+        await pause(100); // eslint-disable-line no-await-in-loop
+
+        if (!router) {
+          ({ router } = w.Ember.A(window.Ember.Namespace.NAMESPACES).find(a => { return a.name !== 'DS'; })._applicationInstances.values().next().value); // eslint-disable-line no-underscore-dangle,new-cap
+        }
+
+      }
+
+    }
+
+  }
+
+  if (typeof config.settled === 'function') {
+    await config.settled();
+  }
 
 }
 
@@ -635,7 +665,6 @@ function logLoadDuration(start, end, elementText, isPerformanceTest) {
 
 // todo: move everything out of test-helpers that's not actually a test helper
 
-// todo: move out of test-helpers
 function toggleDisplay(selector, show) {
 
   document.querySelectorAll(selector).forEach(e => {
@@ -651,7 +680,6 @@ function toggleDisplay(selector, show) {
 
 }
 
-// todo: move out of test-helpers
 function toggleDisplayBasedOnMatch(selector, matchSelector) {
 
   document.querySelectorAll(selector).forEach(e => {
@@ -726,15 +754,13 @@ function setupConsole() {
     toggleDisplayBasedOnMatch('.console-log p', '[data-page-load-time]');
   });
 
-  // TODO: restore:
+  const bttnPerf = document.createElement('button');
+  bttnPerf.classList.add('console-log__button');
+  bttnPerf.textContent = 'Performance Load Times';
 
-  // const bttnPerf = document.createElement('button');
-  // bttnPerf.classList.add('console-log__button');
-  // bttnPerf.textContent = 'Performance Load Times';
-
-  // bttnPerf.addEventListener('click', () => {
-  //   toggleDisplayBasedOnMatch('.console-log p', '[data-page-load-time-performance]');
-  // });
+  bttnPerf.addEventListener('click', () => {
+    toggleDisplayBasedOnMatch('.console-log p', '[data-page-load-time-performance]');
+  });
 
   bindFutureElementEvent(consoleLog, 'p.console-log__entry', 'mousedown', line => {
 
@@ -750,7 +776,7 @@ function setupConsole() {
   consoleLog.appendChild(bttnClearFilters);
   consoleLog.appendChild(bttnErrors);
   consoleLog.appendChild(bttnLoad);
-  // consoleLog.appendChild(bttnPerf);
+  consoleLog.appendChild(bttnPerf);
   consoleLog.appendChild(chkShowDOM);
   consoleLog.appendChild(lblShowDOM);
   consoleLog.appendChild(document.createElement('hr'));
@@ -879,13 +905,18 @@ function hang() {
 
 /**
  * Gets the first element matching the provided text if the text appears anywhere in the element
- * @param {NodeList} elements
+ * @param {selector|HTMLElement|Array} selector
+ * - a string containing a selector expression
+ * <br> - an HTMLElement
+ * <br> - an Array of HTMLElements
  * @returns {HTMLElement | null} the element found or null
  * @instance
  * @example
  * getElementByText(myElements, 'textToLookFor');
 */
-function getElementByText(elements, text) {
+function getElementByText(selector, text) {
+
+  const elements = resolveSelector(selector);
 
   for (const e of elements) {
 
@@ -988,10 +1019,10 @@ async function retry(timeout, pauseRate, logMessage, retryFunction, suppressLog)
 
 /**
  * Get a random element from a collection
-   * @param {selector|HTMLElement|NodeList} selector
+   * @param {selector|HTMLElement|Array} selector
    * - a string containing a selector expression
    * <br> - an HTMLElement
-   * <br> - a NodeList of HTMLElements
+   * <br> - an Array of HTMLElements
  * @returns {HTMLElement} a single HTMLElement
  * @instance
  * @example
@@ -1040,10 +1071,10 @@ function getProp(selector, prop) {
 
 /**
  * Get the text of a DOM element
- * @param {selector|HTMLElement|NodeList} selector
+ * @param {selector|HTMLElement|Array} selector
  * - a string containing a selector expression
  * <br> - an HTMLElement
- * <br> - a NodeList of HTMLElements
+ * <br> - an Array of HTMLElements
  * @returns {string} text of the element
  * @instance
  * @example
@@ -1055,10 +1086,10 @@ function getText(selector) {
 
 /**
  * Get the value of a DOM element
- * @param {selector|HTMLElement|NodeList} selector
+ * @param {selector|HTMLElement|Array} selector
  * - a string containing a selector expression
  * <br> - an HTMLElement
- * <br> - a NodeList of HTMLElements
+ * <br> - an Array of HTMLElements
  * @returns {string} value of the element
  * @instance
  * @example
@@ -1070,26 +1101,35 @@ function getValue(selector) {
 
 /**
  * Determine if an element is visible
- * @param {HTMLElement} e an HTMLElement
+ * @param {selector|HTMLElement|Array} selector
+ * - a string containing a selector expression
+ * <br> - an HTMLElement
+ * <br> - an Array of HTMLElements
  * @returns {boolean}
  * @instance
  * @example
  * elementIsVisible(someElement);
 */
-function elementIsVisible(e) {
-  // todo: this should use selector/resolve selector
-  return e && Boolean(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+function elementIsVisible(selector) {
+
+  const [e] = resolveSelector(selector);
+
+  return Boolean(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+
 }
 
 /**
  * Determine if an element is visible in the viewport
- * @param {element} e a DOM element
+ * @param {selector|HTMLElement|Array} selector
+ * - a string containing a selector expression
+ * <br> - an HTMLElement
+ * <br> - an Array of HTMLElements
  * @returns {boolean}
  * @private
  * @instance
 */
-function elementIsInViewport(e) {
-  // todo: this should use selector/resolve selector
+function elementIsInViewport(selector) {
+  const [e] = resolveSelector(selector);
   // consider element in view as long as we can still see the bottom of it
   return e.getBoundingClientRect().bottom > 0;
 }
@@ -1262,6 +1302,7 @@ module.exports = {
   postJSON,
   postTLS,
   reload,
+  resolveSelector,
   retry,
   submitForm,
   trimAndRemoveLineBreaks,

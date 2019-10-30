@@ -83,7 +83,11 @@ gulp.task('init', () => {
 
 gulp.task('js', gulp.series(() => {
 
-  return gulp.src([`${afterburnerModulePath}/src/helpers/**/*.js`])
+  return gulp.src(
+    [
+      `${afterburnerModulePath}/src/classes/**/*.js`,
+      `${afterburnerModulePath}/src/helpers/**/*.js`
+    ])
     .pipe(gulp.dest('tmp'));
 
 }, done => {
@@ -101,7 +105,9 @@ gulp.task('js', gulp.series(() => {
 
   return browserify({ entries: files, debug: true })
     // when adding new aliased modules, you must add a corresponding entry in the jsconfig.json files
+    .require('./afterburner-config', { expose: '@afterburner/config' })
     .require('./tmp/assertions', { expose: '@afterburner/assertions' })
+    .require('./tmp/stacky-error', { expose: '@afterburner/stacky-error' })
     .require('./tmp/test-helpers', { expose: '@afterburner/test-helpers' })
     .require('./tmp/test-init', { expose: '@afterburner/test' })
     .bundle()
@@ -138,7 +144,7 @@ gulp.task('browserSync', done => {
 
 gulp.task('watch', done => {
 
-  const watchFiles = ['tests/**/*.js'];
+  const watchFiles = ['./afterburner-config', 'tests/**/*.js'];
 
   if (devTest) {
     watchFiles.push(
