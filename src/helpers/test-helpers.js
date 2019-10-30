@@ -578,7 +578,7 @@ function waitForPageRedirect({ waitForAjaxRequests, timeout } = {}) {
 
 async function settled() {
 
-  if (config.environments.includes('ember')) {
+  if (config.environments && config.environments.includes('ember')) {
 
     const w = frameWindow();
 
