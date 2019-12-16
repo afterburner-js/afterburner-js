@@ -1164,7 +1164,7 @@ async function executeCommand(command, { cwd, timeout } = { cwd: '', timeout: ''
 /**
  * Gets a JSON response via GET XMLHttpRequest
  * @param {string} url
- * @returns {jqXHR/promise}
+ * @returns {Response/promise}
  * @instance
  * @example
  * await getJSON('someURL');
@@ -1177,7 +1177,7 @@ function getJSON(url) {
  * Sends data via POST XMLHttpRequest application/x-www-form-urlencoded
  * @param {string} url
  * @param {object|string|array} data data to be sent to the server. it is converted to a query string, if not already a string. object must be key/value pairs. if value is an Array, serializes multiple values with same key
- * @returns {jqXHR/promise}
+ * @returns {Response/promise}
  * @instance
  * @example
  * await post('someURL', 'some value');
@@ -1191,7 +1191,7 @@ function post(url, data) {
  * Sends data via POST XMLHttpRequest application/json
  * @param {string} url
  * @param {string} data a JSON string
- * @returns {jqXHR/promise}
+ * @returns {Response/promise}
  * @instance
  * @example
  * await postJSON('someURL', JSON.stringify(someObject));
@@ -1205,7 +1205,7 @@ function postJSON(url, data) {
  * @param {string} key PEM-formatted private key
  * @param {string} cert device certificate
  * @param {string} data a JSON string
- * @returns {jqXHR/promise}
+ * @returns {Response/promise}
  * @private
  * @instance
 */
@@ -1229,7 +1229,7 @@ async function postTLS(key, cert, data) {
 
 /**
  * Low-level wrapper for AJAX requests.  Consistent error handling and stack traces.  All AJAX request methods should call this method.
- * @returns {jqXHR/promise}
+ * @returns {Response/promise}
  * @private
  * @instance
 */

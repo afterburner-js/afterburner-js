@@ -1,1 +1,13 @@
-/app
+// same as the /app .eslintignore file - eslint only supports one ignore file, so we have to duplicate rules here
+
+# compiled output
+/app/dist/
+/app/tmp/
+
+# dependencies
+/app/node_modules/
+
+# misc
+/app/coverage/
+/app!.*
+/app.eslintrc.js

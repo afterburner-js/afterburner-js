@@ -5,11 +5,15 @@ const config = require('./config');
 
 const { log } = console;
 
+/* eslint-disable no-multi-spaces */
+
 const testTypeEnum = Object.freeze({
-  APP: 0,
-  DEV_TEST: 1,
-  SMOKE_TEST: 2,
+  APP: 0,         // running afterburner normally to test an external application
+  DEV_TEST: 1,    // test afterburner itself during framework development
+  SMOKE_TEST: 2,  // CI test
 });
+
+/* eslint-enable no-multi-spaces */
 
 function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
 
@@ -71,7 +75,13 @@ function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
 
 function getCICommand(filter, host, launch, testType) {
 
-  let cmd = `./node_modules/eslint/bin/eslint.js . || exit 1 ; host=${host}`;
+  let cmd = '';
+
+  if (testType === testTypeEnum.APP) {
+    cmd += ' ./node_modules/eslint/bin/eslint.js . || exit 1 ;';
+  }
+
+  cmd += ` host=${host}`;
 
   const params = new URLSearchParams();
 
@@ -101,7 +111,13 @@ function getCICommand(filter, host, launch, testType) {
 
 function getLocalCommand(filter, host, testType) {
 
-  let cmd = `./node_modules/eslint/bin/eslint.js . ; host=${host}`;
+  let cmd = '';
+
+  if (testType === testTypeEnum.APP) {
+    cmd += ' ./node_modules/eslint/bin/eslint.js . ;';
+  }
+
+  cmd += ` host=${host}`;
 
   if (filter) {
     cmd += ` filter="${filter}"`;
