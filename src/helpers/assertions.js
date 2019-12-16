@@ -205,6 +205,40 @@ class DomAssertions {
 
   }
 
+  isChecked(message, inverse) {
+
+    const result = inverse ? !this.e.checked : this.e.checked;
+
+    this.pushResult({
+      result,
+      actual: result,
+      expected: true,
+      message: message || `${this.selector} is checked: ${result}`
+    });
+
+  }
+
+  isDisabled(message, inverse) {
+
+    const result = inverse ? !this.e.disabled : this.e.disabled;
+
+    this.pushResult({
+      result,
+      actual: result,
+      expected: true,
+      message: message || `${this.selector} is disabled: ${result}`
+    });
+
+  }
+
+  isEnabled(message) {
+    this.isDisabled(message, true);
+  }
+
+  isNotChecked(message) {
+    this.isChecked(message, true);
+  }
+
   isVisible(message, inverse) {
 
     const result = inverse ? !elementIsVisible(this.e) : elementIsVisible(this.e);
