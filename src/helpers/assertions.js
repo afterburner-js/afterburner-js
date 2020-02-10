@@ -112,10 +112,10 @@ class DomAssertions {
 
   hasClass(cssClass, message) {
 
-    const actualClass = this.e.attr('class');
+    const actualClass = this.e[0].getAttribute('class');
 
     this.pushResult({
-      result: this.e.hasClass(cssClass),
+      result: this.e[0].classList.contains(cssClass),
       actual: actualClass,
       expected: cssClass,
       message: message || `${this.selector} has class ${actualClass}`
@@ -207,7 +207,7 @@ class DomAssertions {
 
   isChecked(message, inverse) {
 
-    const result = inverse ? !this.e.checked : this.e.checked;
+    const result = inverse ? !this.e[0].checked : this.e[0].checked;
 
     this.pushResult({
       result,
@@ -220,7 +220,7 @@ class DomAssertions {
 
   isDisabled(message, inverse) {
 
-    const result = inverse ? !this.e.disabled : this.e.disabled;
+    const result = inverse ? !this.e[0].disabled : this.e[0].disabled;
 
     this.pushResult({
       result,
@@ -329,7 +329,7 @@ module.exports = function() {
     else if (typeof selector === 'string') {
       mutatedSelector = selector;
     }
-    else {
+    else if (selector) {
       mutatedSelector = selector.toString();
     }
 

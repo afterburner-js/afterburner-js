@@ -5,6 +5,18 @@ const config = require('./config');
 
 const { log } = console;
 
+const reservedCLIArgs = [
+  'afterburnerRootDir',
+  'ci',
+  'debug',
+  'dev', // (anything starting with dev)
+  'filter',
+  'host',
+  'launch',
+  'rootDir',
+  'test',
+];
+
 /* eslint-disable no-multi-spaces */
 
 const testTypeEnum = Object.freeze({
@@ -86,11 +98,16 @@ function getCICommand(filter, host, launch, testType) {
   const params = new URLSearchParams();
 
   params.set('ci', 'true');
-  params.set('host', host);
+  params.set('host', new URL(host).hostname);
 
   if (filter) {
     params.set('filter', filter);
   }
+
+  getCustomArguments().forEach(arg => {
+    const [k, v] = arg.split('=');
+    params.set(k, v);
+  });
 
   if (testType === testTypeEnum.DEV_TEST) {
     cmd += ' devTest=true';
@@ -119,10 +136,6 @@ function getLocalCommand(filter, host, testType) {
 
   cmd += ` host=${host}`;
 
-  if (filter) {
-    cmd += ` filter="${filter}"`;
-  }
-
   if (testType === testTypeEnum.DEV_TEST) {
     cmd += ' devTest=true';
   }
@@ -130,9 +143,42 @@ function getLocalCommand(filter, host, testType) {
     cmd += ` afterburnerRootDir=${config.rootDir}`;
   }
 
+  const params = new URLSearchParams();
+
+  params.set('host', new URL(host).hostname);
+
+  if (filter) {
+    params.set('filter', filter);
+  }
+
+  getCustomArguments().forEach(arg => {
+    const [k, v] = arg.split('=');
+    params.set(k, v);
+  });
+
+  cmd += ` testPage="afterburner/tests.html?${decodeURIComponent(params.toString())}"`;
+
   cmd += ` ./node_modules/.bin/gulp`;
 
   return cmd;
+
+}
+
+function getCustomArguments() {
+
+  const args = [];
+
+  for (const arg of config.args) {
+
+    const [key] = arg.split('=');
+
+    if (!key.startsWith('dev') && !reservedCLIArgs.includes(key)) {
+      args.push(arg);
+    }
+
+  }
+
+  return args;
 
 }
 

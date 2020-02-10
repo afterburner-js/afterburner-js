@@ -3,10 +3,5 @@ module.exports = {
   // filter: 'my test filter', // set a default filter of tests to run on start.  if not set, all tests will run.
   // host: 'https://localhost', // set the default host to test
   environments: [/* 'angular', 'ember' */],
-  detectPageLoadErrors() {
-    // add page load error logic here
-  },
-  settled() {
-    // add custom settled logic here
-  },
+  libs: [],
 };
