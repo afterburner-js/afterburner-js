@@ -10,7 +10,7 @@ const buffer = require('vinyl-buffer');
 const globArray = require('glob-array');
 const proxy = require('./middleware/proxy');
 const shelly = require('./middleware/shelly');
-const { hostname, origin } = require('./middleware/common');
+const { origin } = require('./middleware/common');
 
 const { afterburnerRootDir, devTest, testPage } = process.env; // eslint-disable-line no-process-env
 
