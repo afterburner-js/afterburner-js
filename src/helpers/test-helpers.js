@@ -4,6 +4,7 @@
 
 const StackyError = require('@afterburner/stacky-error');
 const config = require('@afterburner/config');
+const { detectPageLoadErrors, settled: customSettled } = require('@afterburner/helper-hooks');
 
 const iframeContainer = document.getElementById('iframeContainer');
 
@@ -12,6 +13,41 @@ let logLineNumber = 1;
 let consoleLog, framezilla, pFrameWindow, resizeTimer, scrollTimer, lastHighlightedLine, activeAjaxRequests, lastAJAXRequestCompleted;
 
 const ci = new URL(document.location).searchParams.get('ci');
+
+const testHelpers = {
+  afterEach,
+  beforeEach,
+  click,
+  currentPage,
+  currentPageIs,
+  currentPageIsNot,
+  elementIsVisible,
+  escapeHTML,
+  executeCommand,
+  fillIn,
+  find,
+  findAll,
+  frameWindow,
+  getCurrentPageSearchParams,
+  getElementByText,
+  getJSON,
+  getRandomElement,
+  getText,
+  getValue,
+  hang,
+  hideFrameContainer,
+  log,
+  pause,
+  post,
+  postJSON,
+  reload,
+  resolveSelector,
+  retry,
+  submitForm,
+  trimAndRemoveLineBreaks,
+  visit,
+  waitForPageRedirect
+};
 
 function find(selector) {
   return frameWindow().document.querySelector(selector);
@@ -282,7 +318,7 @@ function detectProxyErrors(reject, outerStack) {
  * @private
  * @instance
 */
-function bindLoad(resolve, reject, { $clickedElement, waitForAjaxRequests = false, isPerformanceTest, /* logErrors = true, */ waitForElements }) {
+function bindLoad(resolve, reject, { clickedElement, waitForAjaxRequests = false, isPerformanceTest, logErrors = true, waitForElements }) {
 
   // get stack information in the outer scope, so if we have failures within the event handler function below, we have more useful information for debugging
   const outerStack = Error().stack;
@@ -297,6 +333,17 @@ function bindLoad(resolve, reject, { $clickedElement, waitForAjaxRequests = fals
     eavesdrop();
 
     pageLoadSuccess = detectProxyErrors(reject, outerStack);
+
+    if (pageLoadSuccess && typeof detectPageLoadErrors === 'function') {
+
+      const { error, pageLoaded } = detectPageLoadErrors(testHelpers, logErrors, isPerformanceTest);
+
+      if (pageLoaded === false) {
+        reject(new StackyError(outerStack, `could not load page: ${error}`));
+        pageLoadSuccess = false;
+      }
+
+    }
 
     if (pageLoadSuccess) {
 
@@ -318,7 +365,7 @@ function bindLoad(resolve, reject, { $clickedElement, waitForAjaxRequests = fals
 
       let elementText;
 
-      if ($clickedElement) { elementText = $clickedElement[0].outerHTML; }
+      if (clickedElement) { elementText = clickedElement.outerHTML; }
 
       logLoadDuration(start, end, elementText, isPerformanceTest);
       log(`${new Date().toISOString()} -- page loaded: ${currentPage()} -- waited for AJAX requests: ${waitForAjaxRequests}`, { color: 'grey', emoji: '📄', fontStyle: 'italic' });
@@ -416,6 +463,22 @@ async function resolveSynchronousClick(e, resolve, waitForElements) {
 }
 
 /**
+ * Simulate a key press
+ * @private
+ * @instance
+*/
+function simulateKeyPress(e) {
+
+  const element = e.length > 1 ? e[0] : e;
+
+  // all three of these events fire, in this order, when a key is pressed
+  element.dispatchEvent(new KeyboardEvent('keydown'));
+  element.dispatchEvent(new KeyboardEvent('keypress'));
+  element.dispatchEvent(new KeyboardEvent('keyup'));
+
+}
+
+/**
  * Simulate a mouse click
  * @private
  * @instance
@@ -500,8 +563,30 @@ function currentPageIsNot(expected) {
  * fillIn('.someSelector', 'someValue');
 */
 function fillIn(selector, value) {
+  // TODO: add error message to the log if resolveSelector returns []
   resolveSelector(selector).forEach(e => {
-    e.value = value;
+
+    if (e instanceof frameWindow().HTMLElement && !e.disabled) {
+
+      if (e instanceof frameWindow().HTMLInputElement && e.getAttribute('type') === 'checkbox') {
+
+        if (value) {
+          if (!e.checked) {
+            simulateMouseClick(e);
+          }
+        }
+        else if (e.checked) {
+          simulateMouseClick(e);
+        }
+
+      }
+      else {
+        e.value = value;
+        simulateKeyPress(e); // fire event handlers that may be bound
+      }
+
+    }
+
   });
 }
 
@@ -511,15 +596,15 @@ function resolveSelector(selector) {
     return findAll(selector);
   }
 
-  if (selector instanceof HTMLElement) {
-    return [selector];
-  }
-
   if (Array.isArray(selector)) {
     return selector;
   }
 
-  return [];
+  if (!selector) {
+    return [];
+  }
+
+  return [selector];
 
 }
 
@@ -578,7 +663,7 @@ function waitForPageRedirect({ waitForAjaxRequests, timeout } = {}) {
 
 async function settled() {
 
-  if (config.environments.includes('ember')) {
+  if (config.environments && config.environments.includes('ember')) {
 
     const w = frameWindow();
 
@@ -601,7 +686,7 @@ async function settled() {
         await pause(100); // eslint-disable-line no-await-in-loop
 
         if (!router) {
-          ({ router } = w.Ember.A(window.Ember.Namespace.NAMESPACES).find(a => { return a.name !== 'DS'; })._applicationInstances.values().next().value); // eslint-disable-line no-underscore-dangle,new-cap
+          ({ router } = w.Ember.A(w.Ember.Namespace.NAMESPACES).find(a => { return a.name !== 'DS'; })._applicationInstances.values().next().value); // eslint-disable-line no-underscore-dangle,new-cap
         }
 
       }
@@ -610,8 +695,8 @@ async function settled() {
 
   }
 
-  if (typeof config.settled === 'function') {
-    await config.settled();
+  if (typeof customSettled === 'function') {
+    await customSettled();
   }
 
 }
@@ -810,7 +895,9 @@ function bindFutureElementEvent(container, futureElementSelector, eventType, cal
 
     }
 
-    callback(element);
+    if (element) {
+      callback(element); // eslint-disable-line callback-return
+    }
 
   });
 
@@ -978,7 +1065,7 @@ function setPromiseTimeout(reject, timeout) {
  * await reload({ waitForAjaxRequests: true });
 */
 async function reload({ waitForAjaxRequests, timeout } = {}) {
-  await visit(currentPage(), { waitForAjaxRequests, timeout });
+  await visit(frameWindow().location.href, { waitForAjaxRequests, timeout });
 }
 
 /**
@@ -993,7 +1080,7 @@ async function reload({ waitForAjaxRequests, timeout } = {}) {
  * // retry every 5 seconds, timeout after 3 minutes
  * await retry(3, 5000, 'reload page and look for a change in text', async() => {
  *   await reload();
- *   return find('.someSelector').text() === 'some text';
+ *   return find('.someSelector').textContent === 'some text';
  * });
  *
  * // retry every 100ms, timeout after 6 seconds (.1 minute).  suppressLog=true because we don't want 60 messages in the log
@@ -1114,7 +1201,7 @@ function elementIsVisible(selector) {
 
   const [e] = resolveSelector(selector);
 
-  return Boolean(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+  return e && Boolean(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
 
 }
 
@@ -1132,6 +1219,10 @@ function elementIsInViewport(selector) {
   const [e] = resolveSelector(selector);
   // consider element in view as long as we can still see the bottom of it
   return e.getBoundingClientRect().bottom > 0;
+}
+
+function getCurrentPageSearchParams() {
+  return new URL(frameWindow().location).searchParams;
 }
 
 /**
@@ -1164,7 +1255,7 @@ async function executeCommand(command, { cwd, timeout } = { cwd: '', timeout: ''
 /**
  * Gets a JSON response via GET XMLHttpRequest
  * @param {string} url
- * @returns {jqXHR/promise}
+ * @returns {Response/promise}
  * @instance
  * @example
  * await getJSON('someURL');
@@ -1176,68 +1267,43 @@ function getJSON(url) {
 /**
  * Sends data via POST XMLHttpRequest application/x-www-form-urlencoded
  * @param {string} url
- * @param {object|string|array} data data to be sent to the server. it is converted to a query string, if not already a string. object must be key/value pairs. if value is an Array, serializes multiple values with same key
- * @returns {jqXHR/promise}
+ * @param {object|string} data data to be sent to the server. it is converted to a query string, if not already a string. object must be key/value pairs. if value is an Array, serializes multiple values with same key
+ * @returns {Response/promise}
  * @instance
  * @example
  * await post('someURL', 'some value');
  * await post('someURL', { someKey: 'someValue' });
 */
 function post(url, data) {
-  return ajax({ url, data, method: 'POST' });
+  // the Fetch Standard states that if the body is a URLSearchParams object then it should be serialised as application/x-www-form-urlencode
+  return ajax({ url, data: new URLSearchParams(data), method: 'POST' });
 }
 
 /**
  * Sends data via POST XMLHttpRequest application/json
  * @param {string} url
- * @param {string} data a JSON string
- * @returns {jqXHR/promise}
+ * @param {object} data data to be sent to the server
+ * @returns {Response/promise}
  * @instance
  * @example
- * await postJSON('someURL', JSON.stringify(someObject));
+ * await postJSON('someURL', someObject);
 */
 function postJSON(url, data) {
-  return ajax({ url, data, method: 'POST', contentType: 'application/json' });
-}
-
-/**
- * Sends data via proxy server to the status API /manager/api/manager/status
- * @param {string} key PEM-formatted private key
- * @param {string} cert device certificate
- * @param {string} data a JSON string
- * @returns {jqXHR/promise}
- * @private
- * @instance
-*/
-async function postTLS(key, cert, data) {
-
-  const res = await postJSON('http://localhost:3000/tls', {
-    key,
-    cert,
-    postData: data,
-  });
-
-  const parsedResponse = JSON.parse(res);
-
-  if (parsedResponse.statusCode !== 200) {
-    throw new Error(`TLS request failed:\n${JSON.stringify(parsedResponse)}`);
-  }
-
-  return parsedResponse;
-
+  return ajax({ url, data: JSON.stringify(data), method: 'POST', contentType: 'application/json' });
 }
 
 /**
  * Low-level wrapper for AJAX requests.  Consistent error handling and stack traces.  All AJAX request methods should call this method.
- * @returns {jqXHR/promise}
+ * @returns {Response/promise}
  * @private
  * @instance
 */
 function ajax({ method, url, data, contentType, timeout }) {
 // TODO: log the request... maybe the response status/code
   const options = {
-    method,
     cache: 'no-cache',
+    method,
+    redirect: 'error',
   };
 
   if (data) { options.body = data; }
@@ -1260,6 +1326,8 @@ function ajax({ method, url, data, contentType, timeout }) {
 
     p2.then(r => {
       resolve(r);
+    }, r => {
+      reject(r);
     });
 
   });
@@ -1275,40 +1343,7 @@ function ajax({ method, url, data, contentType, timeout }) {
 
 }
 
-module.exports = {
-  afterEach,
-  beforeEach,
-  click,
-  currentPage,
-  currentPageIs,
-  currentPageIsNot,
-  elementIsVisible,
-  escapeHTML,
-  executeCommand,
-  fillIn,
-  find,
-  findAll,
-  frameWindow,
-  getElementByText,
-  getJSON,
-  getRandomElement,
-  getText,
-  getValue,
-  hang,
-  hideFrameContainer,
-  log,
-  pause,
-  post,
-  postJSON,
-  postTLS,
-  reload,
-  resolveSelector,
-  retry,
-  submitForm,
-  trimAndRemoveLineBreaks,
-  visit,
-  waitForPageRedirect
-};
+module.exports = testHelpers;
 
 // todo: move ajax methods to helpers/fetch.js / @afterburner/fetch
 // todo: move everything else that is "framework" into `src` directory and browsersify via gulpfile, import @ aliases

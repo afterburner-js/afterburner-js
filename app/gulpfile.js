@@ -1,3 +1,4 @@
+const fs = require('fs');
 const gulp = require('gulp');
 const minifyCSS = require('gulp-csso');
 const concat = require('gulp-concat');
@@ -9,9 +10,9 @@ const buffer = require('vinyl-buffer');
 const globArray = require('glob-array');
 const proxy = require('./middleware/proxy');
 const shelly = require('./middleware/shelly');
-const { filter, hostname, origin } = require('./middleware/common');
+const { origin } = require('./middleware/common');
 
-const { afterburnerRootDir, devTest } = process.env; // eslint-disable-line no-process-env
+const { afterburnerRootDir, devTest, testPage } = process.env; // eslint-disable-line no-process-env
 
 let afterburnerModulePath = devTest ? '..' : 'node_modules/@afterburner-js/afterburner-js';
 let smokeTest;
@@ -20,6 +21,11 @@ if (afterburnerRootDir) {
   // will have a value if smoke test is running
   smokeTest = true;
   afterburnerModulePath = afterburnerRootDir;
+}
+
+if (!fs.existsSync(afterburnerModulePath)) {
+  console.log(afterburnerModulePath);
+  throw new Error(`can't find afterburner module path: ${afterburnerModulePath}`);
 }
 
 const dist = 'dist';
@@ -106,6 +112,8 @@ gulp.task('js', gulp.series(() => {
   return browserify({ entries: files, debug: true })
     // when adding new aliased modules, you must add a corresponding entry in the jsconfig.json files
     .require('./afterburner-config', { expose: '@afterburner/config' })
+    .require('./afterburner-helper-hooks', { expose: '@afterburner/helper-hooks' })
+    .require('./afterburner-lifecycle', { expose: '@afterburner/lifecycle' })
     .require('./tmp/assertions', { expose: '@afterburner/assertions' })
     .require('./tmp/stacky-error', { expose: '@afterburner/stacky-error' })
     .require('./tmp/test-helpers', { expose: '@afterburner/test-helpers' })
@@ -121,21 +129,18 @@ gulp.task('js', gulp.series(() => {
 
 gulp.task('browserSync', done => {
 
-  let startPath = `afterburner/tests.html?host=${hostname}`;
-
-  if (filter) {
-    startPath += `&filter=${filter}`;
-  }
-
   browserSync.init({
     server: {
       baseDir: dist,
-      middleware: [shelly, proxy(origin)],
+      middleware: [
+        shelly,
+        proxy(origin)
+      ],
       routes: {
         '/afterburner': dist
       },
     },
-    startPath,
+    startPath: testPage,
   });
 
   done();
@@ -144,7 +149,12 @@ gulp.task('browserSync', done => {
 
 gulp.task('watch', done => {
 
-  const watchFiles = ['./afterburner-config', 'tests/**/*.js'];
+  const watchFiles = [
+    './afterburner-config.js',
+    './afterburner-helper-hooks.js',
+    './afterburner-lifecycle.js',
+    'tests/**/*.js'
+  ];
 
   if (devTest) {
     watchFiles.push(

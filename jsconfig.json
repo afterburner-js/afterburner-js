@@ -4,6 +4,7 @@
     "paths": {
       "@afterburner/assertions": ["./src/helpers/assertions"],
       "@afterburner/config": ["./app/afterburner-config"],
+      "@afterburner/lifecycle": ["./app/afterburner-lifecycle"],
       "@afterburner/stacky-error": ["./src/classes/stacky-error"],
       "@afterburner/test-helpers": ["./src/helpers/test-helpers"],
       "@afterburner/test": ["./src/helpers/test-init"]

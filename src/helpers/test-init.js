@@ -1,6 +1,7 @@
 const QUnit = require('qunit');
 const { afterEach, beforeEach, escapeHTML, frameWindow, log } = require('@afterburner/test-helpers');
 const assertions = require('@afterburner/assertions');
+const lifecycle = require('@afterburner/lifecycle');
 
 function handleMessage(e) {
 
@@ -81,6 +82,8 @@ QUnit.begin(() => {
   log(`Seed value: ${QUnit.config.seed}\n`, { emoji: '🌱' });
   log(`Host: ${host}\n`, { emoji: '🌐', color: 'violet' });
 
+  lifecycle.begin();
+
 });
 
 QUnit.moduleStart(({ name }) => {
@@ -104,17 +107,25 @@ QUnit.done(({ total, failed, passed, runtime }) => {
 });
 
 const commonModuleHooks = {
-  before(/* assert */) {
-    // prepare something once for all tests
+  async before(assert) {
+    if (typeof lifecycle.before === 'function') { await lifecycle.before(assert); }
   },
-  beforeEach(/* assert */) {
+  async beforeEach(assert) {
+
+    if (typeof lifecycle.beforeEach === 'function') { await lifecycle.beforeEach(assert); }
+
     beforeEach();
+
   },
-  /* async */ afterEach(/* assert */) {
+  async afterEach(assert) {
+
+    if (typeof lifecycle.afterEach === 'function') { await lifecycle.afterEach(assert); }
+
     afterEach();
+
   },
-  after() {
-    // do something once after all tests
+  async after(assert) {
+    if (typeof lifecycle.after === 'function') { await lifecycle.after(assert); }
   }
 };
 

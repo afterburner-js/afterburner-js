@@ -5,11 +5,27 @@ const config = require('./config');
 
 const { log } = console;
 
+const reservedCLIArgs = [
+  'afterburnerRootDir',
+  'ci',
+  'debug',
+  'dev', // (anything starting with dev)
+  'filter',
+  'host',
+  'launch',
+  'rootDir',
+  'test',
+];
+
+/* eslint-disable no-multi-spaces */
+
 const testTypeEnum = Object.freeze({
-  APP: 0,
-  DEV_TEST: 1,
-  SMOKE_TEST: 2,
+  APP: 0,         // running afterburner normally to test an external application
+  DEV_TEST: 1,    // test afterburner itself during framework development
+  SMOKE_TEST: 2,  // CI test
 });
+
+/* eslint-enable no-multi-spaces */
 
 function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
 
@@ -71,16 +87,27 @@ function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
 
 function getCICommand(filter, host, launch, testType) {
 
-  let cmd = `./node_modules/eslint/bin/eslint.js . || exit 1 ; host=${host}`;
+  let cmd = '';
+
+  if (testType === testTypeEnum.APP) {
+    cmd += ' ./node_modules/eslint/bin/eslint.js . || exit 1 ;';
+  }
+
+  cmd += ` host=${host}`;
 
   const params = new URLSearchParams();
 
   params.set('ci', 'true');
-  params.set('host', host);
+  params.set('host', new URL(host).hostname);
 
   if (filter) {
     params.set('filter', filter);
   }
+
+  getCustomArguments().forEach(arg => {
+    const [k, v] = arg.split('=');
+    params.set(k, v);
+  });
 
   if (testType === testTypeEnum.DEV_TEST) {
     cmd += ' devTest=true';
@@ -101,11 +128,13 @@ function getCICommand(filter, host, launch, testType) {
 
 function getLocalCommand(filter, host, testType) {
 
-  let cmd = `./node_modules/eslint/bin/eslint.js . ; host=${host}`;
+  let cmd = '';
 
-  if (filter) {
-    cmd += ` filter="${filter}"`;
+  if (testType === testTypeEnum.APP) {
+    cmd += ' ./node_modules/eslint/bin/eslint.js . ;';
   }
+
+  cmd += ` host=${host}`;
 
   if (testType === testTypeEnum.DEV_TEST) {
     cmd += ' devTest=true';
@@ -114,9 +143,42 @@ function getLocalCommand(filter, host, testType) {
     cmd += ` afterburnerRootDir=${config.rootDir}`;
   }
 
+  const params = new URLSearchParams();
+
+  params.set('host', new URL(host).hostname);
+
+  if (filter) {
+    params.set('filter', filter);
+  }
+
+  getCustomArguments().forEach(arg => {
+    const [k, v] = arg.split('=');
+    params.set(k, v);
+  });
+
+  cmd += ` testPage="afterburner/tests.html?${decodeURIComponent(params.toString())}"`;
+
   cmd += ` ./node_modules/.bin/gulp`;
 
   return cmd;
+
+}
+
+function getCustomArguments() {
+
+  const args = [];
+
+  for (const arg of config.args) {
+
+    const [key] = arg.split('=');
+
+    if (!key.startsWith('dev') && !reservedCLIArgs.includes(key)) {
+      args.push(arg);
+    }
+
+  }
+
+  return args;
 
 }
 

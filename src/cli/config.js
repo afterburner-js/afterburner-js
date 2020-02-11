@@ -20,6 +20,7 @@ else {
 
 module.exports = {
   appName: args[1],
+  args,
   ci: getArg('ci'),
   cmd: args[0],
   debug: getArg('debug') === 'true',

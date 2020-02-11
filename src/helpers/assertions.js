@@ -11,6 +11,7 @@ const {
   currentPage,
   currentPageIs,
   elementIsVisible,
+  frameWindow,
   resolveSelector,
   trimAndRemoveLineBreaks
 } = require('@afterburner/test-helpers');
@@ -112,10 +113,10 @@ class DomAssertions {
 
   hasClass(cssClass, message) {
 
-    const actualClass = this.e.attr('class');
+    const actualClass = this.e[0].getAttribute('class');
 
     this.pushResult({
-      result: this.e.hasClass(cssClass),
+      result: this.e[0].classList.contains(cssClass),
       actual: actualClass,
       expected: cssClass,
       message: message || `${this.selector} has class ${actualClass}`
@@ -205,6 +206,40 @@ class DomAssertions {
 
   }
 
+  isChecked(message, inverse) {
+
+    const result = inverse ? !this.e[0].checked : this.e[0].checked;
+
+    this.pushResult({
+      result,
+      actual: result,
+      expected: true,
+      message: message || `${this.selector} is checked: ${result}`
+    });
+
+  }
+
+  isDisabled(message, inverse) {
+
+    const result = inverse ? !this.e[0].disabled : this.e[0].disabled;
+
+    this.pushResult({
+      result,
+      actual: result,
+      expected: true,
+      message: message || `${this.selector} is disabled: ${result}`
+    });
+
+  }
+
+  isEnabled(message) {
+    this.isDisabled(message, true);
+  }
+
+  isNotChecked(message) {
+    this.isChecked(message, true);
+  }
+
   isVisible(message, inverse) {
 
     const result = inverse ? !elementIsVisible(this.e) : elementIsVisible(this.e);
@@ -241,21 +276,25 @@ module.exports = function() {
 
     if (message) {
       pMessage = message;
-      pExpected = expected;
     }
     else if (isNot) {
       pMessage = result ? `we are NOT on the ${expected} page` : `we are on the ${expected} page`;
-      pExpected = `not ${expected}`; // required because `actual` and `expected` cannot be the same for a failed result
     }
     else {
       pMessage = result ? `we are on the ${expected} page` : `we are NOT on the ${expected} page`;
+    }
+
+    if (isNot) {
+      pExpected = `not ${expected}`; // required because `actual` and `expected` cannot be the same for a failed result
+    }
+    else {
       pExpected = expected;
     }
 
     this.pushResult({
       result,
       actual: currentPage(),
-      pExpected,
+      expected: pExpected,
       message: pMessage
     });
 
@@ -289,13 +328,13 @@ module.exports = function() {
 
     let mutatedSelector;
 
-    if (selector instanceof HTMLElement) {
+    if (selector instanceof frameWindow().HTMLElement) {
       mutatedSelector = e.nodeName;
     }
     else if (typeof selector === 'string') {
       mutatedSelector = selector;
     }
-    else {
+    else if (selector) {
       mutatedSelector = selector.toString();
     }
 
