@@ -11,6 +11,7 @@ const {
   currentPage,
   currentPageIs,
   elementIsVisible,
+  frameWindow,
   resolveSelector,
   trimAndRemoveLineBreaks
 } = require('@afterburner/test-helpers');
@@ -275,21 +276,25 @@ module.exports = function() {
 
     if (message) {
       pMessage = message;
-      pExpected = expected;
     }
     else if (isNot) {
       pMessage = result ? `we are NOT on the ${expected} page` : `we are on the ${expected} page`;
-      pExpected = `not ${expected}`; // required because `actual` and `expected` cannot be the same for a failed result
     }
     else {
       pMessage = result ? `we are on the ${expected} page` : `we are NOT on the ${expected} page`;
+    }
+
+    if (isNot) {
+      pExpected = `not ${expected}`; // required because `actual` and `expected` cannot be the same for a failed result
+    }
+    else {
       pExpected = expected;
     }
 
     this.pushResult({
       result,
       actual: currentPage(),
-      pExpected,
+      expected: pExpected,
       message: pMessage
     });
 
@@ -323,7 +328,7 @@ module.exports = function() {
 
     let mutatedSelector;
 
-    if (selector instanceof HTMLElement) {
+    if (selector instanceof frameWindow().HTMLElement) {
       mutatedSelector = e.nodeName;
     }
     else if (typeof selector === 'string') {

@@ -566,9 +566,9 @@ function fillIn(selector, value) {
   // TODO: add error message to the log if resolveSelector returns []
   resolveSelector(selector).forEach(e => {
 
-    if (!e.disabled) {
+    if (e instanceof frameWindow().HTMLElement && !e.disabled) {
 
-      if (e instanceof HTMLInputElement && e.getAttribute('type') === 'checkbox') {
+      if (e instanceof frameWindow().HTMLInputElement && e.getAttribute('type') === 'checkbox') {
 
         if (value) {
           if (!e.checked) {
@@ -1301,8 +1301,9 @@ function postJSON(url, data) {
 function ajax({ method, url, data, contentType, timeout }) {
 // TODO: log the request... maybe the response status/code
   const options = {
-    method,
     cache: 'no-cache',
+    method,
+    redirect: 'error',
   };
 
   if (data) { options.body = data; }
@@ -1325,6 +1326,8 @@ function ajax({ method, url, data, contentType, timeout }) {
 
     p2.then(r => {
       resolve(r);
+    }, r => {
+      reject(r);
     });
 
   });
