@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@afterburner/assertions": ["./node_modules/@afterburner-js/afterburner-js/src/helpers/assertions"],
+      "@afterburner/config": ["./afterburner-config"],
+      "@afterburner/helper-hooks": ["./afterburner-helper-hooks"],
+      "@afterburner/lifecycle": ["./afterburner-lifecycle"],
+      "@afterburner/stacky-error": ["./node_modules/@afterburner-js/afterburner-js/src/classes/stacky-error"],
+      "@afterburner/test-helpers": ["./node_modules/@afterburner-js/afterburner-js/src/helpers/test-helpers"],
+      "@afterburner/test": ["./node_modules/@afterburner-js/afterburner-js/src/helpers/test-init"]
+    }
+  }
+}
