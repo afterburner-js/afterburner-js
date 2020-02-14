@@ -116,7 +116,7 @@ function getCICommand(filter, host, launch, testType) {
     cmd += ` afterburnerRootDir=${config.rootDir}`;
   }
 
-  cmd += ` ./node_modules/.bin/testem ci --test_page="afterburner/tests.html?${decodeURIComponent(params.toString())}"`;
+  cmd += ` CI=true ./node_modules/.bin/testem ci --test_page="afterburner/tests.html?${decodeURIComponent(params.toString())}"`;
 
   if (launch) {
     cmd += ` --launch=${launch}`;
