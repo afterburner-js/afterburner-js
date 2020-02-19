@@ -112,9 +112,9 @@ const commonModuleHooks = {
   },
   async beforeEach(assert) {
 
-    if (typeof lifecycle.beforeEach === 'function') { await lifecycle.beforeEach(assert); }
-
     beforeEach();
+
+    if (typeof lifecycle.beforeEach === 'function') { await lifecycle.beforeEach(assert); }
 
   },
   async afterEach(assert) {
