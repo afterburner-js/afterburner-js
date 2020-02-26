@@ -130,6 +130,7 @@ gulp.task('js', gulp.series(() => {
 gulp.task('browserSync', done => {
 
   browserSync.init({
+    notify: false,
     server: {
       baseDir: dist,
       middleware: [

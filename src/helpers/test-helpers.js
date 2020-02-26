@@ -327,8 +327,8 @@ function bindLoad(resolve, reject, { clickedElement, waitForAjaxRequests = false
 
   const start = new Date();
 
-  framezilla.addEventListener('load', async function woot() {
-    framezilla.removeEventListener('load', woot);
+  framezilla.addEventListener('load', async function afterburnerLoadHandler() {
+    framezilla.removeEventListener('load', afterburnerLoadHandler);
 
     eavesdrop();
 
@@ -1275,7 +1275,7 @@ function getJSON(url) {
  * await post('someURL', { someKey: 'someValue' });
 */
 function post(url, data) {
-  // the Fetch Standard states that if the body is a URLSearchParams object then it should be serialised as application/x-www-form-urlencode
+  // the Fetch Standard states that if the body is a URLSearchParams object then it should be serialised as application/x-www-form-urlencoded
   return ajax({ url, data: new URLSearchParams(data), method: 'POST' });
 }
 
