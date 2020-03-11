@@ -573,16 +573,22 @@ function fillIn(selector, value) {
         if (value) {
           if (!e.checked) {
             simulateMouseClick(e);
+            e.dispatchEvent(new Event('change'));
           }
         }
         else if (e.checked) {
           simulateMouseClick(e);
+          e.dispatchEvent(new Event('change'));
         }
 
       }
-      else {
+      else if (e.value != value) { // eslint-disable-line eqeqeq
+        // relaxed comparison in case the caller passes in a number or something
+        // for this check, we would consider 1 and "1" to be equal
+        // and we wouldn't change the value nor fire an event
         e.value = value;
         simulateKeyPress(e); // fire event handlers that may be bound
+        e.dispatchEvent(new Event('change'));
       }
 
     }
