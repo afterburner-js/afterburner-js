@@ -386,9 +386,13 @@ function bindLoad(resolve, reject, { clickedElement, waitForAjaxRequests = false
 */
 async function waitForElementsToLoad(elements) {
 
-  const waitForElements = resolveSelector(elements);
+  // TODO: update callers public API documentation to reflect acceptable values for `elements`:
+  // * - a string containing a selector expression
+  // * <br> - an Array of selector expression strings
 
-  for (const e of waitForElements) {
+  for (const s of elements) {
+
+    const e = resolveSelector(s);
 
     await retry(0.1, 100, '', () => { // eslint-disable-line no-await-in-loop
       return e.length === 0 || !elementIsVisible(e);
