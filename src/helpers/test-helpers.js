@@ -390,7 +390,9 @@ async function waitForElementsToLoad(elements) {
   // * - a string containing a selector expression
   // * <br> - an Array of selector expression strings
 
-  for (const s of elements) {
+  const arrElements = Array.isArray(elements) ? elements : [elements];
+
+  for (const s of arrElements) {
 
     const e = resolveSelector(s);
 
