@@ -65,7 +65,14 @@ function pCreateApp(appPath) {
     npmInstall.on('exit', exitCode => {
 
       if (exitCode === 0) {
-        log(chalk.blueBright(`successfully created app at: ${appPath}`));
+
+        if (fs.existsSync(`${appPath}/node_modules/@afterburner-js/afterburner-js/`)) {
+          log(chalk.blueBright(`successfully created app at: ${appPath}`));
+        }
+        else {
+          resolve(1);
+          log(chalk.red('failed to install afterburner-js in new app folder'));
+        }
 
       }
       else {

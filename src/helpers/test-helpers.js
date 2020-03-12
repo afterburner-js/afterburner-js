@@ -386,9 +386,13 @@ function bindLoad(resolve, reject, { clickedElement, waitForAjaxRequests = false
 */
 async function waitForElementsToLoad(elements) {
 
-  const waitForElements = resolveSelector(elements);
+  // TODO: update callers public API documentation to reflect acceptable values for `elements`:
+  // * - a string containing a selector expression
+  // * <br> - an Array of selector expression strings
 
-  for (const e of waitForElements) {
+  for (const s of elements) {
+
+    const e = resolveSelector(s);
 
     await retry(0.1, 100, '', () => { // eslint-disable-line no-await-in-loop
       return e.length === 0 || !elementIsVisible(e);
@@ -573,16 +577,22 @@ function fillIn(selector, value) {
         if (value) {
           if (!e.checked) {
             simulateMouseClick(e);
+            e.dispatchEvent(new Event('change'));
           }
         }
         else if (e.checked) {
           simulateMouseClick(e);
+          e.dispatchEvent(new Event('change'));
         }
 
       }
-      else {
+      else if (e.value != value) { // eslint-disable-line eqeqeq
+        // relaxed comparison in case the caller passes in a number or something
+        // for this check, we would consider 1 and "1" to be equal
+        // and we wouldn't change the value nor fire an event
         e.value = value;
         simulateKeyPress(e); // fire event handlers that may be bound
+        e.dispatchEvent(new Event('change'));
       }
 
     }
