@@ -21,6 +21,9 @@ module.exports = proxyTarget => {
     logLevel: 'warn',
     onProxyRes: proxyRes => {
 
+      // prevents browser login prompt from appearing when we get a 401 response
+      delete proxyRes.headers['www-authenticate'];
+
       const cookie = proxyRes.headers['set-cookie'];
 
       if (Array.isArray(cookie)) {

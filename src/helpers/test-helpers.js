@@ -16,6 +16,7 @@ const ci = new URL(document.location).searchParams.get('ci');
 
 const testHelpers = {
   afterEach,
+  ajax,
   beforeEach,
   click,
   currentPage,
@@ -594,6 +595,7 @@ function fillIn(selector, value) {
         // and we wouldn't change the value nor fire an event
         e.value = value;
         simulateKeyPress(e); // fire event handlers that may be bound
+        e.dispatchEvent(new Event('input'));
         e.dispatchEvent(new Event('change'));
       }
 
@@ -1307,11 +1309,11 @@ function postJSON(url, data) {
 /**
  * Low-level wrapper for AJAX requests.  Consistent error handling and stack traces.  All AJAX request methods should call this method.
  * @returns {Response/promise}
- * @private
  * @instance
 */
 function ajax({ method, url, data, contentType, timeout }) {
 // TODO: log the request... maybe the response status/code
+// TODO: jsdoc, examples
   const options = {
     cache: 'no-cache',
     method,
