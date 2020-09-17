@@ -31,6 +31,8 @@ function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
 
   const { ci, debug, filter, host, launch } = config;
 
+  let mungedHost, cmd;
+
   return new Promise((resolve, reject) => { // eslint-disable-line complexity
 
     if (typeof ci !== 'undefined' && ci !== 'false' && ci !== 'true') {
@@ -45,13 +47,22 @@ function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
       return 1;
     }
 
+    if (host.startsWith('http')) {
+      mungedHost = host;
+    }
+    else {
+      // if they didn't provide a scheme, let's help them out and presume https
+      mungedHost = `https://${host}`;
+      log(`no host scheme was provided. presuming https: ${chalk.inverse(mungedHost)}`);
+    }
+
     try {
-      new URL(host); // eslint-disable-line no-new
+      new URL(mungedHost); // eslint-disable-line no-new
     }
     catch (error) {
 
       if (error instanceof TypeError) {
-        log(chalk.red(`${chalk.inverse('host')} is invalid.  must be a full URL with scheme, such as: https://example.com`));
+        log(chalk.red(`${chalk.inverse('host')} is invalid.  it must be a valid URL, such as: https://example.com`));
       }
       else {
         log(error);
@@ -62,13 +73,11 @@ function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
 
     }
 
-    let cmd;
-
     if (ci === 'true') {
-      cmd = getCICommand(filter, host, launch, testType);
+      cmd = getCICommand(filter, mungedHost, launch, testType);
     }
     else {
-      cmd = getLocalCommand(filter, host, testType);
+      cmd = getLocalCommand(filter, mungedHost, testType);
     }
 
     if (debug) { log(chalk.grey('running afterburner command: ') + chalk.yellow(cmd)); }

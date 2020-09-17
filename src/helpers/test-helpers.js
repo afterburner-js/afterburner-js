@@ -16,6 +16,7 @@ const ci = new URL(document.location).searchParams.get('ci');
 
 const testHelpers = {
   afterEach,
+  ajax,
   beforeEach,
   click,
   currentPage,
@@ -46,7 +47,8 @@ const testHelpers = {
   submitForm,
   trimAndRemoveLineBreaks,
   visit,
-  waitForPageRedirect
+  waitForElementsToLoad,
+  waitForPageRedirect,
 };
 
 function find(selector) {
@@ -394,9 +396,8 @@ async function waitForElementsToLoad(elements) {
 
   for (const s of arrElements) {
 
-    const e = resolveSelector(s);
-
     await retry(0.1, 100, '', () => { // eslint-disable-line no-await-in-loop
+      const e = resolveSelector(s);
       return e.length === 0 || !elementIsVisible(e);
     }, true);
 
@@ -477,10 +478,14 @@ function simulateKeyPress(e) {
 
   const element = e.length > 1 ? e[0] : e;
 
+  const options = {
+    bubbles: true, // make the event bubble up, since sometimes handlers are bound to other DOM elements that wrap the content we are interacting with
+  };
+
   // all three of these events fire, in this order, when a key is pressed
-  element.dispatchEvent(new KeyboardEvent('keydown'));
-  element.dispatchEvent(new KeyboardEvent('keypress'));
-  element.dispatchEvent(new KeyboardEvent('keyup'));
+  element.dispatchEvent(new KeyboardEvent('keydown', options));
+  element.dispatchEvent(new KeyboardEvent('keypress', options));
+  element.dispatchEvent(new KeyboardEvent('keyup', options));
 
 }
 
@@ -570,6 +575,11 @@ function currentPageIsNot(expected) {
 */
 function fillIn(selector, value) {
   // TODO: add error message to the log if resolveSelector returns []
+
+  const options = {
+    bubbles: true, // make the event bubble up, since sometimes handlers are bound to other DOM elements that wrap the content we are interacting with
+  };
+
   resolveSelector(selector).forEach(e => {
 
     if (e instanceof frameWindow().HTMLElement && !e.disabled) {
@@ -579,12 +589,12 @@ function fillIn(selector, value) {
         if (value) {
           if (!e.checked) {
             simulateMouseClick(e);
-            e.dispatchEvent(new Event('change'));
+            e.dispatchEvent(new Event('change', options));
           }
         }
         else if (e.checked) {
           simulateMouseClick(e);
-          e.dispatchEvent(new Event('change'));
+          e.dispatchEvent(new Event('change', options));
         }
 
       }
@@ -594,7 +604,8 @@ function fillIn(selector, value) {
         // and we wouldn't change the value nor fire an event
         e.value = value;
         simulateKeyPress(e); // fire event handlers that may be bound
-        e.dispatchEvent(new Event('change'));
+        e.dispatchEvent(new Event('input', options));
+        e.dispatchEvent(new Event('change', options));
       }
 
     }
@@ -1307,11 +1318,11 @@ function postJSON(url, data) {
 /**
  * Low-level wrapper for AJAX requests.  Consistent error handling and stack traces.  All AJAX request methods should call this method.
  * @returns {Response/promise}
- * @private
  * @instance
 */
 function ajax({ method, url, data, contentType, timeout }) {
 // TODO: log the request... maybe the response status/code
+// TODO: jsdoc, examples
   const options = {
     cache: 'no-cache',
     method,

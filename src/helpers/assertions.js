@@ -329,7 +329,7 @@ module.exports = function() {
     let mutatedSelector;
 
     if (selector instanceof frameWindow().HTMLElement) {
-      mutatedSelector = e.nodeName;
+      mutatedSelector = selector.nodeName;
     }
     else if (typeof selector === 'string') {
       mutatedSelector = selector;
