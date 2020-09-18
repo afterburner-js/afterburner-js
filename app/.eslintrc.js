@@ -14,6 +14,7 @@ module.exports = {
     'eslint:recommended',
   ],
   globals: {
+    find: 'off', // detect when we fail to import find() in tests since there is a (non-standard) find() function in many browsers
     module: false,
     process: false,
     Promise: false,
