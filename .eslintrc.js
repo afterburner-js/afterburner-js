@@ -1,8 +1,8 @@
 module.exports = {
   root: true,
   env: {
-    "es6": true,
-    "node": true
+    es6: true,
+    node: true
   },
   parserOptions: {
     ecmaVersion: 9,
@@ -11,9 +11,7 @@ module.exports = {
       impliedStrict: true
     }
   },
-  extends: [
-    'eslint:recommended',
-  ],
+  extends: ['eslint:recommended'],
   globals: {
   },
   rules: {
@@ -78,7 +76,7 @@ module.exports = {
     'no-void': 'error',
     'no-warning-comments': ['warn', { 'terms': ['fix', 'fixme', 'todo', 'to do', 'hack'], 'location': 'anywhere' }],
     'no-with': 'error',
-    'prefer-promise-reject-errors': ['error', {'allowEmptyReject': true}],
+    'prefer-promise-reject-errors': ['error', { 'allowEmptyReject': true }],
     'require-await': 'error',
     'vars-on-top': 'error',
     'wrap-iife': 'error',
@@ -155,21 +153,21 @@ module.exports = {
     'operator-linebreak': ['error', 'after'],
     'padding-line-between-statements': [
       'error',
-      { 'blankLine': 'always', 'prev': 'import',     'next': '*' },
-      { 'blankLine': 'never',  'prev': 'import',     'next': 'import' },
-      { 'blankLine': 'always', 'prev': 'class',      'next': '*' },
-      { 'blankLine': 'always', 'prev': '*',          'next': 'class' },
-      { 'blankLine': 'always', 'prev': 'block',      'next': '*' },
-      { 'blankLine': 'always', 'prev': '*',          'next': 'block' },
+      { 'blankLine': 'always', 'prev': 'import', 'next': '*' },
+      { 'blankLine': 'never', 'prev': 'import', 'next': 'import' },
+      { 'blankLine': 'always', 'prev': 'class', 'next': '*' },
+      { 'blankLine': 'always', 'prev': '*', 'next': 'class' },
+      { 'blankLine': 'always', 'prev': 'block', 'next': '*' },
+      { 'blankLine': 'always', 'prev': '*', 'next': 'block' },
       { 'blankLine': 'always', 'prev': 'block-like', 'next': '*' },
-      { 'blankLine': 'always', 'prev': '*',          'next': 'block-like' },
+      { 'blankLine': 'always', 'prev': '*', 'next': 'block-like' },
       { 'blankLine': 'always', 'prev': 'cjs-export', 'next': '*' },
-      { 'blankLine': 'always', 'prev': '*',          'next': 'cjs-export' },
+      { 'blankLine': 'always', 'prev': '*', 'next': 'cjs-export' },
       { 'blankLine': 'always', 'prev': 'cjs-import', 'next': '*' },
-      { 'blankLine': 'never',  'prev': 'cjs-import', 'next': 'cjs-import' },
-      { 'blankLine': 'always', 'prev': 'let',        'next': 'const' },
-      { 'blankLine': 'always', 'prev': 'const',      'next': 'let' },
-      { 'blankLine': 'never',  'prev': 'let',        'next': 'let' }
+      { 'blankLine': 'never', 'prev': 'cjs-import', 'next': 'cjs-import' },
+      { 'blankLine': 'always', 'prev': 'let', 'next': 'const' },
+      { 'blankLine': 'always', 'prev': 'const', 'next': 'let' },
+      { 'blankLine': 'never', 'prev': 'let', 'next': 'let' }
     ],
     'quotes': ['error', 'single', { 'allowTemplateLiterals': true }],
     'semi': 'error',
