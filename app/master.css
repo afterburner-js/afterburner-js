@@ -18,6 +18,19 @@ input[type=text], #qunit-modulefilter-search {
   color: lightgrey;
 }
 
+@media (min-height: 500px){
+  #qunit {
+    padding: 0;
+    position: unset;
+  }
+}
+
+@media (min-height: 500px){
+  #qunit-tests {
+    overflow: unset;
+  }
+}
+
 #qunit-modulefilter-search::placeholder {
   color: lightgrey;
 }

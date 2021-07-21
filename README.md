@@ -20,6 +20,8 @@ Afterburner is a meta-framework for testing web applications, web services, syst
 `afterburner new <appName>`
 1. Navigate into the newly created folder.
 `cd <appName>`
+1. Install dependencies
+`npm i`
 1. Run Afterburner, specifying the hostname or IP address of your web application.
 `afterburner test host=<host>`
 1. Open `tests/acceptance/hello-world.js` and start writing your tests!
