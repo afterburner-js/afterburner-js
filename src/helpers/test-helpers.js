@@ -255,6 +255,30 @@ function eavesdrop() {
 
   };
 
+  const { fetch } = pFrameWindow;
+
+  pFrameWindow.fetch = function(...args) {
+
+    const [url] = args;
+
+    activeAjaxRequests += 1;
+
+    log(`${new Date().toISOString()} -- fetch: ${url}`, { color: 'grey', emoji: '➡️', fontStyle: 'italic' });
+
+    const p = fetch.apply(this, args);
+
+    p.then(r => {
+      lastAJAXRequestCompleted = new Date();
+      activeAjaxRequests -= 1;
+      log(`${lastAJAXRequestCompleted.toISOString()} -- fetch succeeded: ${url} -- status: ${r.status}`, { color: 'grey', emoji: '⬅️', fontStyle: 'italic' });
+    }, r => {
+      lastAJAXRequestCompleted = new Date();
+      activeAjaxRequests -= 1;
+      log(`${lastAJAXRequestCompleted.toISOString()} -- fetch failed: ${url} -- reason: ${r}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
+    });
+
+  };
+
 }
 
 /**
@@ -352,7 +376,7 @@ function bindLoad(resolve, reject, { clickedElement, waitForAjaxRequests = false
       await settled();
 
       if (waitForElements) {
-        await waitForElementsToLoad(waitForElements); // wait for specific elements to appear in the DOM before considering the page loaded
+        await waitForElementsToLoad(waitForElements, outerStack, reject); // wait for specific elements to appear in the DOM before considering the page loaded
       }
 
       let end = new Date();
@@ -386,20 +410,38 @@ function bindLoad(resolve, reject, { clickedElement, waitForAjaxRequests = false
  * @private
  * @instance
 */
-async function waitForElementsToLoad(elements) {
+async function waitForElementsToLoad(elements, outerStack, reject) {
 
   // TODO: update callers public API documentation to reflect acceptable values for `elements`:
   // * - a string containing a selector expression
   // * <br> - an Array of selector expression strings
 
+  const stack = outerStack || Error().stack;
+
   const arrElements = Array.isArray(elements) ? elements : [elements];
 
   for (const s of arrElements) {
 
+    let found = false;
+
     await retry(0.1, 100, '', () => { // eslint-disable-line no-await-in-loop
       const e = resolveSelector(s);
-      return e.length === 0 || !elementIsVisible(e);
+      found = e.length > 0 && elementIsVisible(e);
+      return !found;
     }, true);
+
+    if (!found) {
+
+      const e = new StackyError(stack, `element ${s} was not found`);
+
+      if (reject) {
+        reject(e);
+      }
+      else {
+        throw e;
+      }
+
+    }
 
   }
 
@@ -425,7 +467,7 @@ async function waitForElementsToLoad(elements) {
  * await click('.someSelector');
  * await click('.someSelector', { expectPageLoad: true });
 */
-function click(selector, { expectPageLoad = null, waitForAjaxRequests, timeout, logErrors = true, waitForElements } = { expectPageLoad: null }) {
+function click(selector, { expectPageLoad = null, waitForAjaxRequests, timeout, logErrors = true, waitForElements, eventOptions } = { expectPageLoad: null }) {
 
   const [e] = resolveSelector(selector);
 
@@ -440,10 +482,10 @@ function click(selector, { expectPageLoad = null, waitForAjaxRequests, timeout, 
 
     if (expectPageLoad === true || (expectPageLoad === null && (e.getAttribute('type') === 'submit' || e.nodeName === 'A'))) { // eslint-disable-line no-extra-parens
       bindLoad(resolve, reject, { $clickedElement: e, waitForAjaxRequests, logErrors, waitForElements });
-      simulateMouseClick(e);
+      simulateMouseClick(e, eventOptions);
     }
     else {
-      resolveSynchronousClick(e, resolve, waitForElements);
+      resolveSynchronousClick(e, resolve, reject, waitForElements, eventOptions);
     }
 
   });
@@ -455,14 +497,16 @@ function click(selector, { expectPageLoad = null, waitForAjaxRequests, timeout, 
  * @private
  * @instance
 */
-async function resolveSynchronousClick(e, resolve, waitForElements) {
+async function resolveSynchronousClick(e, resolve, reject, waitForElements, eventOptions) {
 
-  simulateMouseClick(e);
+  const outerStack = Error().stack;
+
+  simulateMouseClick(e, eventOptions);
 
   await settled();
 
   if (waitForElements) {
-    await waitForElementsToLoad(waitForElements);
+    await waitForElementsToLoad(waitForElements, outerStack, reject);
   }
 
   resolve();
@@ -474,13 +518,18 @@ async function resolveSynchronousClick(e, resolve, waitForElements) {
  * @private
  * @instance
 */
-function simulateKeyPress(e) {
+function simulateKeyPress(e, eventOptions) {
 
   const element = e.length > 1 ? e[0] : e;
 
   const options = {
     bubbles: true, // make the event bubble up, since sometimes handlers are bound to other DOM elements that wrap the content we are interacting with
+    cancelable: true,
   };
+
+  if (eventOptions) {
+    Object.assign(options, eventOptions);
+  }
 
   // all three of these events fire, in this order, when a key is pressed
   element.dispatchEvent(new KeyboardEvent('keydown', options));
@@ -494,14 +543,19 @@ function simulateKeyPress(e) {
  * @private
  * @instance
 */
-function simulateMouseClick(e) {
+function simulateMouseClick(e, eventOptions) {
 
   const element = e.length > 1 ? e[0] : e;
 
   const options = {
     bubbles: true, // make the event bubble up, since sometimes click handlers are bound to other DOM elements that wrap the content we are clicking
-    button: 0 // simulate that we clicked the primary mouse button
+    button: 0, // simulate that we clicked the primary mouse button
+    cancelable: true,
   };
+
+  if (eventOptions) {
+    Object.assign(options, eventOptions);
+  }
 
   // all three of these events fire, in this order, when the mouse button is clicked
   element.dispatchEvent(new MouseEvent('mousedown', options));
@@ -573,12 +627,17 @@ function currentPageIsNot(expected) {
  * @example
  * fillIn('.someSelector', 'someValue');
 */
-function fillIn(selector, value) {
+function fillIn(selector, value, eventOptions) {
   // TODO: add error message to the log if resolveSelector returns []
 
   const options = {
     bubbles: true, // make the event bubble up, since sometimes handlers are bound to other DOM elements that wrap the content we are interacting with
+    cancelable: true,
   };
+
+  if (eventOptions) {
+    Object.assign(options, eventOptions);
+  }
 
   resolveSelector(selector).forEach(e => {
 
@@ -588,12 +647,12 @@ function fillIn(selector, value) {
 
         if (value) {
           if (!e.checked) {
-            simulateMouseClick(e);
+            simulateMouseClick(e, eventOptions);
             e.dispatchEvent(new Event('change', options));
           }
         }
         else if (e.checked) {
-          simulateMouseClick(e);
+          simulateMouseClick(e, eventOptions);
           e.dispatchEvent(new Event('change', options));
         }
 
@@ -603,7 +662,7 @@ function fillIn(selector, value) {
         // for this check, we would consider 1 and "1" to be equal
         // and we wouldn't change the value nor fire an event
         e.value = value;
-        simulateKeyPress(e); // fire event handlers that may be bound
+        simulateKeyPress(e, eventOptions); // fire event handlers that may be bound
         e.dispatchEvent(new Event('input', options));
         e.dispatchEvent(new Event('change', options));
       }
@@ -684,7 +743,7 @@ function waitForPageRedirect({ waitForAjaxRequests, timeout } = {}) {
 
 }
 
-async function settled() {
+async function settled() { // eslint-disable-line complexity
 
   if (config.environments && config.environments.includes('ember')) {
 
@@ -695,23 +754,30 @@ async function settled() {
 
       let router;
 
-      while (
-        // check run loop is clear
-        w.Ember.run.currentRunLoop ||
-        // check run loop schedule is clear
-        w.Ember.run.hasScheduledTimers() ||
-        // check router is available
-        !router ||
-        // check route transitions
-        router._routerMicrolib.activeTransition // eslint-disable-line no-underscore-dangle
-      ) {
+      try {
 
-        await pause(100); // eslint-disable-line no-await-in-loop
+        while (
+          // check run loop is clear
+          w.Ember.run.currentRunLoop ||
+          // check run loop schedule is clear
+          w.Ember.run.hasScheduledTimers() ||
+          // check router is available
+          !router ||
+          // check route transitions
+          router._routerMicrolib.activeTransition // eslint-disable-line no-underscore-dangle
+        ) {
 
-        if (!router) {
-          ({ router } = w.Ember.A(w.Ember.Namespace.NAMESPACES).find(a => { return a.name !== 'DS'; })._applicationInstances.values().next().value); // eslint-disable-line no-underscore-dangle,new-cap
+          await pause(100); // eslint-disable-line no-await-in-loop
+
+          if (!router) { // eslint-disable-line max-depth
+            ({ router } = w.Ember.A(w.Ember.Namespace.NAMESPACES).find(a => { return a.name !== 'DS'; })._applicationInstances.values().next().value); // eslint-disable-line no-underscore-dangle,new-cap
+          }
+
         }
 
+      }
+      catch (error) {
+        log(`ember settled exception caught:\n${error.stack}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
       }
 
     }
@@ -1070,8 +1136,10 @@ function setPromiseTimeout(reject, timeout) {
     message = '1 minute';
   }
 
+  const outerStack = Error().stack;
+
   setTimeout(() => {
-    reject(new Error(`promise did not resolve within ${message}`));
+    reject(new StackyError(outerStack, `promise did not resolve within ${message}`));
   }, pTimeout);
 
 }
@@ -1260,18 +1328,27 @@ function getCurrentPageSearchParams() {
 */
 async function executeCommand(command, { cwd, timeout } = { cwd: '', timeout: '' }) {
 // TODO: examples
-  const response = await getJSON(`http://localhost:3000/afterburner/shelly?cmd=${command}&cwd=${cwd}&timeout=${timeout}`);
-  const data = await response.json();
 
-  if (data.exitCode !== 0) {
-    log(`command failed:\n${JSON.stringify(data)}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
+  const response = await getJSON(`http://localhost:3000/afterburner/shelly?cmd=${command}&cwd=${cwd}&timeout=${timeout}`);
+
+  // any failure was already logged in ajax(), so no additional logging
+  if (response && response.ok) {
+
+    const data = await response.json();
+
+    if (data.exitCode !== 0) {
+      log(`command failed:\n${JSON.stringify(data)}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
+    }
+
+    return {
+      exitCode: data.exitCode,
+      stdout: data.stdout,
+      stderr: data.stderr
+    };
+
   }
 
-  return {
-    exitCode: data.exitCode,
-    stdout: data.stdout,
-    stderr: data.stderr
-  };
+  return {};
 
 }
 
@@ -1321,12 +1398,14 @@ function postJSON(url, data) {
  * @instance
 */
 function ajax({ method, url, data, contentType, timeout }) {
-// TODO: log the request... maybe the response status/code
-// TODO: jsdoc, examples
+
   const options = {
     cache: 'no-cache',
     method,
-    redirect: 'error',
+    // leaving this commented out for future reference:
+    // we don't want to error on redirect because the browser will fail with "TypeError: Failed to fetch"
+    // which tells us nothing and makes it hard to diagnose issues.  instead, we check for redirect below and log it
+    // redirect: 'error',
   };
 
   if (data) { options.body = data; }
@@ -1335,34 +1414,48 @@ function ajax({ method, url, data, contentType, timeout }) {
 
   const controller = new AbortController();
 
-  const p1 = new Promise((resolve, reject) => {
+  // timeout logic matches that of setPromiseTimeout()
+  // we just don't want to introduce an unnecessary additional promise to accomplish this
+  let pTimeout, timeoutMessage;
 
-    const { signal } = controller;
+  if (timeout) {
+    pTimeout = timeout * 60000;
+    timeoutMessage = `${pTimeout} minute(s)`;
+  }
+  else {
+    pTimeout = 60000;
+    timeoutMessage = '1 minute';
+  }
 
-    options.signal = signal;
-
-    setPromiseTimeout(reject, timeout, () => {
-      controller.abort();
-    });
-
-    const p2 = fetch(url, options);
-
-    p2.then(r => {
-      resolve(r);
-    }, r => {
-      reject(r);
-    });
-
-  });
-
-  p1.then(() => {
-    // here be dragons
-  }, () => {
-    // this is called if the promise rejects due to timeout
+  const timeoutID = setTimeout(() => {
+    log(`test fetch did not complete within ${timeoutMessage}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
     controller.abort();
-  });
+  }, pTimeout);
 
-  return p1;
+  const { signal } = controller;
+
+  options.signal = signal;
+
+  log(`${new Date().toISOString()} -- test fetch: ${url}`, { color: 'grey', emoji: '➡️', fontStyle: 'italic' });
+
+  return fetch(url, options)
+    .then(r => {
+
+      if (r.redirected) {
+        log(`${new Date().toISOString()} -- test fetch failed: ${url} -- response redirected to: ${r.url}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
+        return null;
+      }
+
+      log(`${new Date().toISOString()} -- test fetch succeeded: ${url} -- status: ${r.status}`, { color: 'grey', emoji: '⬅️', fontStyle: 'italic' });
+      return r;
+
+    }, r => {
+      log(`${new Date().toISOString()} -- test fetch failed: ${url} -- reason: ${r}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
+      return r;
+    })
+    .finally(() => {
+      clearTimeout(timeoutID);
+    });
 
 }
 
