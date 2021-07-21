@@ -1,7 +1,7 @@
-const proxy = require('http-proxy-middleware');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = proxyTarget => {
-  return proxy(pathname => {
+  return createProxyMiddleware(pathname => {
     // TODO: document this
 
     // ideally, we would want to have testem.js served somewhere other than the root, but this is not currently an option
