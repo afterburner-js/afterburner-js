@@ -2,6 +2,7 @@ const { URLSearchParams } = require('url');
 const util = require('util');
 
 const exec = util.promisify(require('child_process').exec);
+const { spawn } = require('child_process');
 
 module.exports = {
   route: '/afterburner/shelly',
@@ -15,8 +16,9 @@ module.exports = {
 
     if (booContinue) {
 
-      const cmd = params.get('cmd');
-      const cwd = params.get('cwd');
+      const cmd = hexDecode(params.get('cmd'));
+      const cwd = hexDecode(params.get('cwd'));
+      const useSpawn = params.get('spawn');
 
       let timeout = params.get('timeout');
 
@@ -29,16 +31,35 @@ module.exports = {
 
       res.setHeader('Content-Type', 'application/json');
 
-      try {
-        const { stdout, stderr } = await exec(`${cmd}`, { cwd, timeout });
-        responseData.exitCode = 0; // exit code is 0 if there was no error / rejected promise
-        responseData.stdout = stdout ? stdout.trim() : '';
-        responseData.stderr = stderr ? stderr.trim() : '';
+      // uncomment for debugging:
+      // console.info(`running command ${cmd} from dir ${cwd || process.cwd()}`);
+
+      if (useSpawn === 'true') {
+
+        const splitCMD = cmd.split(/ /g);
+
+        try {
+          spawn(splitCMD[0], splitCMD.slice(1), { stdio: 'ignore', detached: true, cwd, timeout }).unref();
+          responseData.exitCode = 0;
+        }
+        catch (error) {
+          responseData.stderr = JSON.stringify(error);
+        }
       }
-      catch (error) {
-        responseData.exitCode = error.code;
-        responseData.stdout = error.stdout ? error.stdout.trim() : '';
-        responseData.stderr = error.stderr ? error.stderr.trim() : '';
+      else {
+
+        try {
+          const { stdout, stderr } = await exec(`${cmd}`, { cwd, timeout });
+          responseData.exitCode = 0; // exit code is 0 if there was no error / rejected promise
+          responseData.stdout = stdout ? stdout.trim() : '';
+          responseData.stderr = stderr ? stderr.trim() : '';
+        }
+        catch (error) {
+          responseData.exitCode = error.code;
+          responseData.stdout = error.stdout ? error.stdout.trim() : '';
+          responseData.stderr = error.stderr ? error.stderr.trim() : '';
+        }
+
       }
 
     }
@@ -52,3 +73,18 @@ module.exports = {
 
   }
 };
+
+// duplicate of the decode function in @afterburner/test-helpers, which we can't import here
+function hexDecode(hex) {
+
+  const hexChars = hex.match(/.{1,4}/g) || [];
+
+  let decoded = '';
+
+  for (let i = 0; i < hexChars.length; i++) {
+    decoded += String.fromCharCode(parseInt(hexChars[i], 16));
+  }
+
+  return decoded;
+
+}
