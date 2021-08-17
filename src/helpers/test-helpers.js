@@ -36,6 +36,8 @@ const testHelpers = {
   getText,
   getValue,
   hang,
+  hexDecode,
+  hexEncode,
   hideFrameContainer,
   log,
   pause,
@@ -1165,7 +1167,7 @@ async function reload({ waitForAjaxRequests, timeout } = {}) {
  * @param {number} pauseRate milliseconds - time to pause between retries (frequency)
  * @param {string} logMessage message to write to log before each retry (should describe what retryFunction is doing)
  * @param {function} retryFunction function to retry - must return a boolean - function will be retried until it returns false
- * @param {boolean} [suppressLog=false] don't write to the log (useful for retry operations with a high frequency)
+ * @param {boolean} [quiet=false] don't write to the log (useful for retry operations with a high frequency)
  * @instance
  * @example
  * // retry every 5 seconds, timeout after 3 minutes
@@ -1179,13 +1181,13 @@ async function reload({ waitForAjaxRequests, timeout } = {}) {
  *   return findAll('.someSelector').length === 0;
  * }, true);
 */
-async function retry(timeout, pauseRate, logMessage, retryFunction, suppressLog) {
+async function retry(timeout, pauseRate, logMessage, retryFunction, quiet) {
 
   const start = new Date();
 
   while (new Date() - start < timeout * 60000 && await retryFunction()) { // eslint-disable-line no-await-in-loop
 
-    if (!suppressLog) {
+    if (!quiet) {
       log(`${new Date().toISOString()} -- pausing for ${pauseRate / 1000} second(s) -- ${logMessage}`, { color: 'grey', emoji: '⏸️', fontStyle: 'italic' });
     }
 
@@ -1326,10 +1328,10 @@ function getCurrentPageSearchParams() {
  * @instance
  * @example
 */
-async function executeCommand(command, { cwd, timeout } = { cwd: '', timeout: '' }) {
+async function executeCommand(command, { cwd = '', timeout = '', spawn = false } = { cwd: '', timeout: '', spawn: false }) {
 // TODO: examples
 
-  const response = await getJSON(`http://localhost:3000/afterburner/shelly?cmd=${command}&cwd=${cwd}&timeout=${timeout}`);
+  const response = await getJSON(`http://localhost:3000/afterburner/shelly?cmd=${hexEncode(command)}&cwd=${hexEncode(cwd)}&timeout=${timeout}&spawn=${spawn}`);
 
   // any failure was already logged in ajax(), so no additional logging
   if (response && response.ok) {
@@ -1456,6 +1458,32 @@ function ajax({ method, url, data, contentType, timeout }) {
     .finally(() => {
       clearTimeout(timeoutID);
     });
+
+}
+
+function hexEncode(str) {
+
+  let encoded = '';
+
+  for (let i = 0; i < str.length; i++) {
+    encoded += `000${str.charCodeAt(i).toString(16)}`.slice(-4);
+  }
+
+  return encoded;
+
+}
+
+function hexDecode(hex) {
+
+  const hexChars = hex.match(/.{1,4}/g) || [];
+
+  let decoded = '';
+
+  for (let i = 0; i < hexChars.length; i++) {
+    decoded += String.fromCharCode(parseInt(hexChars[i], 16));
+  }
+
+  return decoded;
 
 }
 
