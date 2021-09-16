@@ -36,8 +36,6 @@ const testHelpers = {
   getText,
   getValue,
   hang,
-  hexDecode,
-  hexEncode,
   hideFrameContainer,
   log,
   pause,
@@ -819,7 +817,7 @@ function logLoadDuration(start, end, elementText, isPerformanceTest) {
   txt = `${time} to load ${location.pathname}${decodeURIComponent(location.search)}`;
 
   if (elementText) {
-    txt += ` -- via ${escapeHTML(elementText).replace(/\n/g, ' ')}`;
+    txt += ` -- via ${elementText.replace(/\n/g, ' ')}`;
   }
 
   let dataAttributes = 'data-page-load-time';
@@ -1031,7 +1029,7 @@ function log(txt, { color = '#ffbf00', dataAttributes = '', emoji = '', fontStyl
 
   const style = `color:${color};font-weight:${fontWeight};font-style:${fontStyle};`;
 
-  p.innerHTML += `<span class="console-log__entry-content" style="${style}">${txt}</span>`;
+  p.innerHTML += `<span class="console-log__entry-content" style="${style}">${escapeHTML(txt)}</span>`;
 
   consoleLog.appendChild(p);
 
@@ -1331,7 +1329,7 @@ function getCurrentPageSearchParams() {
 async function executeCommand(command, { cwd = '', timeout = '', spawn = false } = { cwd: '', timeout: '', spawn: false }) {
 // TODO: examples
 
-  const response = await getJSON(`http://localhost:3000/afterburner/shelly?cmd=${hexEncode(command)}&cwd=${hexEncode(cwd)}&timeout=${timeout}&spawn=${spawn}`);
+  const response = await getJSON(`http://localhost:3000/afterburner/shelly?cmd=${encodeURIComponent(command)}&cwd=${encodeURIComponent(cwd)}&timeout=${timeout}&spawn=${spawn}`);
 
   // any failure was already logged in ajax(), so no additional logging
   if (response && response.ok) {
@@ -1458,32 +1456,6 @@ function ajax({ method, url, data, contentType, timeout }) {
     .finally(() => {
       clearTimeout(timeoutID);
     });
-
-}
-
-function hexEncode(str) {
-
-  let encoded = '';
-
-  for (let i = 0; i < str.length; i++) {
-    encoded += `000${str.charCodeAt(i).toString(16)}`.slice(-4);
-  }
-
-  return encoded;
-
-}
-
-function hexDecode(hex) {
-
-  const hexChars = hex.match(/.{1,4}/g) || [];
-
-  let decoded = '';
-
-  for (let i = 0; i < hexChars.length; i++) {
-    decoded += String.fromCharCode(parseInt(hexChars[i], 16));
-  }
-
-  return decoded;
 
 }
 

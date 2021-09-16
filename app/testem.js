@@ -3,6 +3,13 @@
 const proxy = require('./middleware/proxy');
 const shelly = require('./middleware/shelly');
 const { origin } = require('./middleware/common');
+const { checkPort } = require('./check-port');
+
+(async() => {
+  await checkPort();
+})().catch(err => {
+  throw err;
+});
 
 const middleware = app => {
   app.use(shelly.route, shelly.handle);
