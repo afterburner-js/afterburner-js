@@ -11,6 +11,7 @@ const globArray = require('glob-array');
 const proxy = require('./middleware/proxy');
 const shelly = require('./middleware/shelly');
 const { origin } = require('./middleware/common');
+const { checkPort } = require('./check-port');
 
 const { afterburnerRootDir, devTest, testPage } = process.env; // eslint-disable-line no-process-env
 
@@ -127,7 +128,11 @@ gulp.task('js', gulp.series(() => {
 
 }));
 
-gulp.task('browserSync', done => {
+gulp.task('browserSync', async done => {
+
+  await checkPort().catch(err => {
+    throw err;
+  });
 
   browserSync.init({
     notify: false,

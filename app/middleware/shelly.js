@@ -16,8 +16,8 @@ module.exports = {
 
     if (booContinue) {
 
-      const cmd = hexDecode(params.get('cmd'));
-      const cwd = hexDecode(params.get('cwd'));
+      const cmd = params.get('cmd');
+      const cwd = params.get('cwd');
       const useSpawn = params.get('spawn');
 
       let timeout = params.get('timeout');
@@ -73,18 +73,3 @@ module.exports = {
 
   }
 };
-
-// duplicate of the decode function in @afterburner/test-helpers, which we can't import here
-function hexDecode(hex) {
-
-  const hexChars = hex.match(/.{1,4}/g) || [];
-
-  let decoded = '';
-
-  for (let i = 0; i < hexChars.length; i++) {
-    decoded += String.fromCharCode(parseInt(hexChars[i], 16));
-  }
-
-  return decoded;
-
-}

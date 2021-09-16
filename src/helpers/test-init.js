@@ -1,5 +1,5 @@
 const QUnit = require('qunit');
-const { afterEach, beforeEach, escapeHTML, frameWindow, log } = require('@afterburner/test-helpers');
+const { afterEach, beforeEach, frameWindow, log } = require('@afterburner/test-helpers');
 const assertions = require('@afterburner/assertions');
 const lifecycle = require('@afterburner/lifecycle');
 
@@ -7,7 +7,7 @@ function handleMessage(e) {
 
   const { error } = e.data;
 
-  if (error) { log(escapeHTML(`${error.message}\n${error.stack}`), { color: 'red', dataAttributes: 'data-errors', emoji: '❌' }); }
+  if (error) { log(`${error.message}\n${error.stack}`, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' }); }
 
 }
 
@@ -55,14 +55,14 @@ QUnit.log(({ result, message, actual, expected, source }) => {
   }
 
   if (result) {
-    log(escapeHTML(txt), { color: 'green', emoji: '✅' });
+    log(txt, { color: 'green', emoji: '✅' });
   }
   else {
 
-    log(escapeHTML(txt), { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
+    log(txt, { color: 'red', dataAttributes: 'data-errors', emoji: '❌' });
 
     if (frameWindow()) {
-      log(escapeHTML(`BEGIN DOM OUTPUT FOR FAILURE: ${message}\n---\n${frameWindow().document.documentElement.outerHTML}\n---\n🖨️ END DOM OUTPUT FOR FAILURE: ${message}`), { color: 'grey', dataAttributes: 'data-errors data-dom-output', emoji: '🖨️', hidden: true });
+      log(`BEGIN DOM OUTPUT FOR FAILURE: ${message}\n---\n${frameWindow().document.documentElement.outerHTML}\n---\n🖨️ END DOM OUTPUT FOR FAILURE: ${message}`, { color: 'grey', dataAttributes: 'data-errors data-dom-output', emoji: '🖨️', hidden: true });
     }
 
   }
@@ -79,8 +79,9 @@ QUnit.begin(() => {
   header.parentNode.appendChild(spanHost);
 
   assertions();
-  log(`Seed value: ${QUnit.config.seed}\n`, { emoji: '🌱' });
-  log(`Host: ${host}\n`, { emoji: '🌐', color: 'violet' });
+  log(`Seed value: ${QUnit.config.seed}`, { emoji: '🌱' });
+  log(`Host: ${host}`, { emoji: '🌐', color: 'MediumPurple' });
+  log(`User Agent: ${navigator.userAgent}`, { emoji: '🕵️', color: 'Lavender' });
 
   lifecycle.begin();
 
@@ -91,7 +92,7 @@ QUnit.moduleStart(({ name }) => {
 });
 
 QUnit.moduleDone(({ failed, name, passed, runtime, total }) => {
-  log(`--- Finished module '${name}' - Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${(runtime / 1000).toFixed(1)}s ---\n`, { color: 'grey', fontStyle: 'italic' });
+  log(`--- Finished module '${name}' - Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${(runtime / 1000).toFixed(1)}s ---`, { color: 'grey', fontStyle: 'italic' });
 });
 
 QUnit.testStart(({ name }) => {
@@ -99,7 +100,7 @@ QUnit.testStart(({ name }) => {
 });
 
 QUnit.testDone(({ failed, name, passed, runtime, total }) => {
-  log(`--- Finished test '${name}' - Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${(runtime / 1000).toFixed(1)}s ---\n`, { color: 'grey', fontStyle: 'italic' });
+  log(`--- Finished test '${name}' - Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${(runtime / 1000).toFixed(1)}s ---`, { color: 'grey', fontStyle: 'italic' });
 });
 
 QUnit.done(({ total, failed, passed, runtime }) => {
