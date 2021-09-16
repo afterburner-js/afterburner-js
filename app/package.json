@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {},
   "devDependencies": {
-    "@afterburner-js/afterburner-js": "^1.0.8",
+    "@afterburner-js/afterburner-js": "^1.x",
     "browser-sync": "^2.27.4",
     "browserify": "^17.0.0",
     "eslint": "^7.31.0",
@@ -21,6 +21,7 @@
     "http-proxy-middleware": "^2.0.1",
     "qunit": "^2.16.0",
     "source-map-support": "^0.5.19",
+    "tcp-port-used": "^1.0.2",
     "testem": "^3.4.2",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"

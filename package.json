@@ -1,6 +1,6 @@
 {
   "name": "@afterburner-js/afterburner-js",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "",
   "main": "index.js",
   "bin": {
@@ -23,7 +23,6 @@
     "chalk": "^4.1.1",
     "eslint": "^7.31.0",
     "express": "^4.17.1",
-    "fs-extra": "^10.0.0",
-    "tcp-port-used": "^1.0.2"
+    "fs-extra": "^10.0.0"
   }
 }
