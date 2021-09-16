@@ -3,13 +3,6 @@
 const proxy = require('./middleware/proxy');
 const shelly = require('./middleware/shelly');
 const { origin } = require('./middleware/common');
-const { checkPort } = require('./check-port');
-
-(async() => {
-  await checkPort();
-})().catch(err => {
-  throw err;
-});
 
 const middleware = app => {
   app.use(shelly.route, shelly.handle);
@@ -17,7 +10,7 @@ const middleware = app => {
 };
 
 module.exports = {
-  'before_tests': './node_modules/.bin/gulp ci',
+  'before_tests': `node -e 'require("./check-port").checkPort()' || exit 1 ; ./node_modules/.bin/gulp ci`,
   'on_exit': 'rm -rf ./dist/',
   'serve_files': ['dist/'],
   'test_page': 'afterburner/tests.html',
