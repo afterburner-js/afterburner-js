@@ -42,7 +42,7 @@ You should only ever run this application against a host you fully trust because
 
 ## Background / Inspiration
 
-Afterburner was developed at [IBM Cloud Object Storage](https://www.ibm.com/cloud/object-storage) to fill a test gap between applications and to optimize the feedback loop during test writing. The first-class test harness included with [Ember.js](https://emberjs.com) is fantastic, and years ago when we first started using it, due to the complexities of our systems, we hit a wall with testing where we needed to have a test that spanned the Ember application and other applications, services, etc. That turned into a proof-of-concept to see if we could create something similar that would meet our needs and Afterburner was born. Because the Ember test harness was so well done, and to minimize the burden of context-switching, we use much of the same tooling and workflow under the hood, and our test helpers are closely aligned with Ember's.
+Afterburner was developed at [IBM Cloud Object Storage](https://www.ibm.com/cloud/object-storage) to fill a test gap between applications and to optimize the feedback loop during test writing.
 
 ## License
 
