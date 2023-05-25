@@ -10,7 +10,7 @@ const middleware = app => {
 };
 
 module.exports = {
-  'before_tests': `node -e 'require("./check-port").checkPort()' || exit 1 ; ./node_modules/.bin/gulp ci`,
+  'before_tests': `./node_modules/.bin/gulp ci`,
   'on_exit': 'rm -rf ./dist/',
   'serve_files': ['dist/'],
   'test_page': 'afterburner/tests.html',

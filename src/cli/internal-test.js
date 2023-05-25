@@ -16,7 +16,7 @@ function startTestSiteServer() {
 
   app.use((req, res) => {
     res.statusCode = 404;
-    res.end(`afterburner 404 not found: ${req.url}`);
+    res.end(`afterburner 404 not found: ${escapeHTML(req.url)}`);
   });
 
   return new Promise(resolve => {
@@ -123,6 +123,16 @@ function lint() {
 
   });
 
+}
+
+/**
+ * Escape HTML for rendering
+*/
+function escapeHTML(str) {
+  return str.replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 module.exports = { devTest, smokeTest, startTestSiteServer };
