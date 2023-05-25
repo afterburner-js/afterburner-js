@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/afterburner-js/afterburner-js#readme",
   "devDependencies": {
-    "jsdoc": "^3.6.7"
+    "jsdoc": "^4.0.2"
   },
   "dependencies": {
     "chalk": "^5.2.0",
