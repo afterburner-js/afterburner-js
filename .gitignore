@@ -61,4 +61,7 @@ typings/
 # next.js build output
 .next
 
+.DS_Store
+
 app/package-lock.json
+package-lock.json

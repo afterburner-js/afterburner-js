@@ -1,0 +1,11 @@
+{
+  "eslint.validate": [
+    "html",
+    "javascript"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "typescript.validate.enable": false, // disables VS Code linter
+  "javascript.validate.enable": false,
+}
