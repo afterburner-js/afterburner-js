@@ -1,7 +1,7 @@
 {
   "name": "@afterburner-js/afterburner-js",
-  "version": "1.0.10",
-  "description": "",
+  "version": "2.0.0",
+  "description": "meta-framework for testing web applications, web services, systems, and for end-to-end testing",
   "main": "index.js",
   "bin": {
     "afterburner": "index.js"
