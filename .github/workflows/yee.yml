@@ -26,10 +26,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: |
+          package.json
+          app/package.json
 
     - run: npm i -g .
 
-    - run: npm ci
+    - run: npm i
 
     - run: afterburner smoke-test
 

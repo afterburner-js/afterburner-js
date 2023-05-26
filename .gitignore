@@ -63,4 +63,4 @@ typings/
 
 .DS_Store
 
-app/package-lock.json
+package-lock.json
