@@ -6,6 +6,9 @@
   "bin": {
     "afterburner": "index.js"
   },
+  "scripts": {
+    "test": "afterburner smoke-test && afterburner dev-test ci=true"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/afterburner-js/afterburner-js.git"
@@ -21,7 +24,7 @@
   },
   "dependencies": {
     "chalk": "^4.1.2",
-    "eslint": "^8.41.0",
+    "eslint": "^8.48.0",
     "express": "^4.17.1",
     "fs-extra": "^11.1.1"
   }
