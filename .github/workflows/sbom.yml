@@ -1,0 +1,20 @@
+name: 💣 generate SBOM 💥
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: node it
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'npm'
+          cache-dependency-path: |
+            package.json
+      - run: npm i
+
+      - name: Create SBOM with CycloneDX
+        uses: CycloneDX/gh-node-module-generatebom@v1
+        with:
+          output: './bom.json'

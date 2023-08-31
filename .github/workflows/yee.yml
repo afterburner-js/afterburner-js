@@ -30,8 +30,8 @@ jobs:
           package.json
           app/package.json
 
-    - run: npm i -g .
-
-    - run: npm i
-
-    - run: npm test
+    - name: install and run tests
+      run: |
+        npm i -g .
+        npm i
+        npm test
