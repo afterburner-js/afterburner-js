@@ -26,5 +26,11 @@
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "overrides":{
+    "chokidar":"^3.0.0",
+    "glob-stream":"^7.0.0",
+    "glob-parent":"^6.0.0",
+    "micromatch":"^4.0.0"
+  }
 }
