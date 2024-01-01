@@ -9,7 +9,7 @@
   "scripts": {},
   "devDependencies": {
     "@afterburner-js/afterburner-js": "^2.x",
-    "browser-sync": "^2.27.4",
+    "browser-sync": "^3.0.2",
     "browserify": "^17.0.0",
     "eslint": "^8.48.0",
     "glob-array": "^1.0.0",
