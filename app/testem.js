@@ -39,5 +39,5 @@ module.exports = {
     }
   },
   'ignore_missing_launchers': false,
-  'middleware': [middleware]
+  'middleware': [middleware],
 };
