@@ -14,6 +14,18 @@ function startTestSiteServer() {
 
   app.use(express.static(`${config.rootDir}/test-site`));
 
+  app.get('/longboii', (req, res) => {
+    const pause = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
+    setTimeout(() => {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      res.send(`hello, world ${pause}`);
+      res.status(200);
+    }, pause);
+  });
+
   app.use((req, res) => {
     res.statusCode = 404;
     res.end(`afterburner 404 not found: ${escapeHTML(req.url)}`);
@@ -30,6 +42,9 @@ function startTestSiteServer() {
       resolve({ server, host });
 
     });
+
+    process.on('SIGINT', () => { return server.close(); });
+    process.on('SIGTERM', () => { return server.close(); });
 
   });
 

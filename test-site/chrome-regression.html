@@ -3,6 +3,7 @@
   <head>
     <style>
       body {
+        background-color: #fff;
         font-family: monospace;
       }
       #log {
@@ -21,6 +22,7 @@
     <textarea id="log"></textarea>
   </body>
   <script>
+
     let srcCount = 0;
     let loadCount = 0;
 
@@ -35,7 +37,7 @@
 
     (async () => {
       for (let i = 0; i < 1000; i++) {
-        await visit("https://tc39.es/");
+        await visit('https://tc39.es');
       }
     })();
 
@@ -68,7 +70,9 @@
         log(`${new Date().toISOString()} -- setting src to ${url}`);
         srcCount += 1;
         srcCounter.textContent = srcCount;
+
         framezilla.src = url;
+
       }).catch((e) => {
         framezilla.removeEventListener("load", activeHandler);
         log(e);

@@ -4,7 +4,7 @@
     "javascript"
   ],
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
+    "source.fixAll": "explicit"
   },
   "typescript.validate.enable": false, // disables VS Code linter
   "javascript.validate.enable": false,

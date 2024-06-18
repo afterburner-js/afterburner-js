@@ -1,5 +1,6 @@
 const afterburner = require('@afterburner/test');
 const {
+  // getJSON,
   find,
   log,
   pause,
@@ -10,6 +11,15 @@ const {
 afterburner.module('Acceptance | Chrome Regression', () => {
 
   afterburner.test('load event', async assert => {
+
+    // const promises = [];
+
+    // for (let i = 0; i < 7; i++) {
+    //   promises.push(getJSON('/longboii'));
+    // }
+
+    // await Promise.race(promises);
+
     await visit('/chrome-regression.html');
     await retry(5, 5000, 'wait for loading to complete', () => {
       const counter = find('#srcCounter').textContent;
