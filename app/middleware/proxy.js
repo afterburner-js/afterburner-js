@@ -12,7 +12,7 @@ module.exports = proxyTarget => {
     // TODO: document this
 
     // ideally, we would want to have testem.js served somewhere other than the root, but this is not currently an option
-    if (pathname.indexOf('/afterburner/') >= 0 || pathname.indexOf('/testem.js') >= 0) {
+    if (pathname.indexOf('/afterburner/') >= 0 || pathname.indexOf('/testem') >= 0) {
       return false;
     }
 
