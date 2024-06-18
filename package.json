@@ -7,7 +7,9 @@
     "afterburner": "index.js"
   },
   "scripts": {
-    "test": "afterburner smoke-test && afterburner dev-test ci=true"
+    "test": "afterburner smoke-test && afterburner dev-test ci=true",
+    "test-ci-smoke": "afterburner smoke-test",
+    "test-ci-dev": "afterburner dev-test ci=true"
   },
   "repository": {
     "type": "git",

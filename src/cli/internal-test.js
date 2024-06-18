@@ -87,8 +87,8 @@ async function smokeTest() {
   config.host = host;
 
   if (!config.devMode) {
-    config.ci = 'true';
-    config.launch = 'Chrome,Firefox';
+    config.ci = config.ci || 'true';
+    config.launch = config.launch || 'Chrome,Firefox';
   }
 
   exitCode = await test({ cwd: appPath, testType: testTypeEnum.SMOKE_TEST });
