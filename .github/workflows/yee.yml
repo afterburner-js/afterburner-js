@@ -20,6 +20,8 @@ jobs:
           - {version: 113, launch: Chrome}
           - {version: 124, launch: Chrome}
           - {version: 125, launch: Chrome}
+          - {version: 126.0.6439.0, launch: Chrome}
+          - {version: 126.0.6440.0, launch: Chrome}
           - {version: 126, launch: Chrome}
           - {version: stable, launch: Chrome}
           - {version: latest-esr, launch: Firefox}
