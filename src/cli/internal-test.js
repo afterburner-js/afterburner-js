@@ -12,10 +12,18 @@ function startTestSiteServer() {
 
   const app = express();
 
+  app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+  });
+
   app.use(express.static(`${config.rootDir}/test-site`));
 
   app.get('/longboii', (req, res) => {
-    const pause = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
+    const pause = 1;
     setTimeout(() => {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       res.setHeader('Pragma', 'no-cache');

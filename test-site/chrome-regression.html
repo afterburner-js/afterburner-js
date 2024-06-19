@@ -3,97 +3,17 @@
   <head>
     <style>
       body {
-        background-color: #fff;
+        background-color: rgb(31, 31, 31);
+        color: rgb(169, 61, 246);
         font-family: monospace;
-      }
-      #log {
-        height: 333px;
-        width: 100%;
-      }
-      textarea, span, iframe {
-        display: block;
+        font-size: 33px;
       }
     </style>
   </head>
   <body>
-    load attempts: <span id="srcCounter"></span>
-    load events fired: <span id="loadCounter"></span>
-    errors:
-    <textarea id="log"></textarea>
+    hello, world
+    <svg>
+      <use xlink:href="carbon-icons.svg#icon--search--glyph" />
+    </svg>
   </body>
-  <script>
-
-    let srcCount = 0;
-    let loadCount = 0;
-
-    const srcCounter = document.querySelector("#srcCounter");
-    const loadCounter = document.querySelector("#loadCounter");
-    const logText = document.querySelector("#log");
-
-    const framezilla = document.createElement("iframe");
-    document.body.appendChild(framezilla);
-
-    let activeHandler;
-
-    (async () => {
-      for (let i = 0; i < 1000; i++) {
-        await visit('https://tc39.es');
-      }
-    })();
-
-    function pause(ms) {
-      return new Promise((resolve) => {
-        return setTimeout(resolve, ms);
-      });
-    }
-
-    function bindLoad(resolve, requestID) {
-      log(`${new Date().toISOString()} -- binding load -- ${requestID}`);
-
-      activeHandler = () => {
-        framezilla.removeEventListener("load", activeHandler);
-        log(`${new Date().toISOString()} -- load event fired for: ${requestID}`);
-        loadCount += 1;
-        loadCounter.textContent = loadCount;
-        resolve();
-      };
-
-      framezilla.addEventListener("load", activeHandler);
-    }
-
-    function visit(url) {
-      const requestID = crypto.randomUUID();
-
-      return new Promise(async (resolve, reject) => {
-        setPromiseTimeout(reject, requestID);
-        bindLoad(resolve, requestID);
-        log(`${new Date().toISOString()} -- setting src to ${url}`);
-        srcCount += 1;
-        srcCounter.textContent = srcCount;
-
-        framezilla.src = url;
-
-      }).catch((e) => {
-        framezilla.removeEventListener("load", activeHandler);
-        log(e);
-      });
-    }
-
-    function setPromiseTimeout(reject, requestID) {
-      const timeout = 5000;
-      const outerStack = Error().stack;
-
-      setTimeout(() => {
-        reject(
-          new Error(
-            `promise did not resolve within ${timeout}ms -- ${requestID}`
-          )
-        );
-      }, timeout);
-    }
-
-    function log(txt) {
-      logText.textContent = `${logText.textContent}\n${txt}`.trim();
-    }
-  </script>
 </html>
