@@ -4,10 +4,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule: [{cron: "42 3 * * *"}]
 
 jobs:
   build:
-    name: test it
 
     runs-on: ubuntu-latest
 
@@ -23,9 +23,17 @@ jobs:
           - {version: 126.0.6439.0, launch: Chrome}
           - {version: 126.0.6440.0, launch: Chrome}
           - {version: 126, launch: Chrome}
+          - {version: 128.0.6548.0, launch: Chrome}
           - {version: stable, launch: Chrome}
+          - {version: beta, launch: Chrome}
+          - {version: dev, launch: Chrome}
           - {version: latest-esr, launch: Firefox}
           - {version: latest, launch: Firefox}
+          - {version: latest-beta, launch: Firefox}
+          - {version: latest-devedition, launch: Firefox}
+          - {version: latest-nightly, launch: Firefox}
+
+    name: Node v${{ matrix.node-version }} - ${{ matrix.browser.launch }} ${{ matrix.browser.version }}
 
     steps:
     - uses: actions/checkout@v2
