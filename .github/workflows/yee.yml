@@ -17,13 +17,6 @@ jobs:
         node-version: [20]
         # supported Node.js release schedule: https://nodejs.org/en/about/releases/
         browser:
-          - {version: 113, launch: Chrome}
-          - {version: 124, launch: Chrome}
-          - {version: 125, launch: Chrome}
-          - {version: 126.0.6439.0, launch: Chrome}
-          - {version: 126.0.6440.0, launch: Chrome}
-          - {version: 126, launch: Chrome}
-          - {version: 128.0.6548.0, launch: Chrome}
           - {version: stable, launch: Chrome}
           - {version: beta, launch: Chrome}
           - {version: dev, launch: Chrome}
