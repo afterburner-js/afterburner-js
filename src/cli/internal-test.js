@@ -23,7 +23,7 @@ function startTestSiteServer() {
   app.use(express.static(`${config.rootDir}/test-site`));
 
   app.get('/longboii', (req, res) => {
-    const pause = 1;
+    const pause = 10 * 1000;
     setTimeout(() => {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       res.setHeader('Pragma', 'no-cache');

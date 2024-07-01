@@ -32,7 +32,6 @@ module.exports = {
         '--mute-audio',
         '--remote-debugging-port=0',
         '--window-size=1440,900',
-        '--disable-ipc-flooding-protection',
       ].filter(Boolean)
     },
     Firefox: {
