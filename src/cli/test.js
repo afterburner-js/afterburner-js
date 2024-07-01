@@ -82,9 +82,9 @@ function test({ cwd = null, testType = testTypeEnum.APP } = {}) {
 
     if (debug) { log(chalk.grey('running afterburner command: ') + chalk.yellow(cmd)); }
 
-    const aterburner = spawn(cmd, { shell: true, stdio: 'inherit', cwd });
+    const afterburner = spawn(cmd, { shell: true, stdio: 'inherit', cwd });
 
-    aterburner.on('exit', exitCode => {
+    afterburner.on('exit', exitCode => {
       resolve(exitCode);
     });
 

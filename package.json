@@ -1,13 +1,15 @@
 {
   "name": "@afterburner-js/afterburner-js",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "meta-framework for testing web applications, web services, systems, and for end-to-end testing",
   "main": "index.js",
   "bin": {
     "afterburner": "index.js"
   },
   "scripts": {
-    "test": "afterburner smoke-test && afterburner dev-test ci=true"
+    "test": "afterburner smoke-test && afterburner dev-test ci=true",
+    "test-ci-smoke": "afterburner smoke-test",
+    "test-ci-dev": "afterburner dev-test ci=true"
   },
   "repository": {
     "type": "git",

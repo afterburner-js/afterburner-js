@@ -12,7 +12,27 @@ function startTestSiteServer() {
 
   const app = express();
 
+  app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+  });
+
   app.use(express.static(`${config.rootDir}/test-site`));
+
+  app.get('/longboii', (req, res) => {
+    const pause = 10 * 1000;
+    setTimeout(() => {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      res.send(`hello, world ${pause}`);
+      res.status(200);
+    }, pause);
+  });
 
   app.use((req, res) => {
     res.statusCode = 404;
@@ -30,6 +50,9 @@ function startTestSiteServer() {
       resolve({ server, host });
 
     });
+
+    process.on('SIGINT', () => { return server.close(); });
+    process.on('SIGTERM', () => { return server.close(); });
 
   });
 
@@ -87,8 +110,8 @@ async function smokeTest() {
   config.host = host;
 
   if (!config.devMode) {
-    config.ci = 'true';
-    config.launch = 'Chrome,Firefox';
+    config.ci = config.ci || 'true';
+    config.launch = config.launch || 'Chrome,Firefox';
   }
 
   exitCode = await test({ cwd: appPath, testType: testTypeEnum.SMOKE_TEST });

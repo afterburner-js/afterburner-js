@@ -2,21 +2,31 @@ name: test it
 
 on:
   push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
   workflow_dispatch:
+  schedule: [{cron: "42 3 * * *"}]
 
 jobs:
   build:
-    name: test it
 
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20]
         # supported Node.js release schedule: https://nodejs.org/en/about/releases/
+        browser:
+          - {version: stable, launch: Chrome}
+          - {version: beta, launch: Chrome}
+          - {version: dev, launch: Chrome}
+          - {version: latest-esr, launch: Firefox}
+          - {version: latest, launch: Firefox}
+          - {version: latest-beta, launch: Firefox}
+          - {version: latest-devedition, launch: Firefox}
+          - {version: latest-nightly, launch: Firefox}
+
+    name: Node v${{ matrix.node-version }} - ${{ matrix.browser.launch }} ${{ matrix.browser.version }}
 
     steps:
     - uses: actions/checkout@v2
@@ -30,8 +40,32 @@ jobs:
           package.json
           app/package.json
 
+    - name: remove default installed chrome
+      if: ${{ matrix.browser.launch == 'Chrome' }}
+      run: sudo apt remove google-chrome-stable
+
+    - name: Use ${{ matrix.browser.launch }} ${{ matrix.browser.version }}
+      if: ${{ matrix.browser.launch == 'Chrome' }}
+      uses: browser-actions/setup-chrome@v1
+      id: setup-chrome
+      with:
+        chrome-version: ${{ matrix.browser.version }}
+
+    - run: chrome --version
+      if: ${{ matrix.browser.launch == 'Chrome' }}
+
+    - name: Use ${{ matrix.browser.launch }} ${{ matrix.browser.version }}
+      if: ${{ matrix.browser.launch == 'Firefox' }}
+      uses: browser-actions/setup-firefox@v1
+      with:
+        firefox-version: ${{ matrix.browser.version }}
+
+    - run: firefox --version
+      if: ${{ matrix.browser.launch == 'Firefox' }}
+
     - run: npm i -g .
 
     - run: npm i
 
-    - run: npm test
+    - run: npm run test-ci-smoke -- launch=${{ matrix.browser.launch }}
+    - run: npm run test-ci-dev -- launch=${{ matrix.browser.launch }}
