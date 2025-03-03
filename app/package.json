@@ -14,7 +14,7 @@
     "eslint": "^8.48.0",
     "glob-array": "^1.0.0",
     "gulp": "^4.0.2",
-    "gulp-cli": "^2.3.0",
+    "gulp-cli": "^3.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-csso": "^4.0.1",
     "gulp-sourcemaps": "^3.0.0",
